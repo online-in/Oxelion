@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Center - Oxelion</title>
+    
+    <!-- Fonts: Poppins (Geometric Sans) and Allura (Script) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Tailwind -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        script: ['Allura', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            dark: '#0B1120',
+                            light: '#F5F7FA',
+                            gray: '#64748B',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(0, 102, 255, 0.2)',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FC; color: #0B1120; }
+        .script-text { font-family: 'Allura', cursive; line-height: 1; }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15); }
+        .bg-blob {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        .loader-content { text-align: center; animation: fadeIn 0.5s ease-out; }
+        .loader-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0066FF 0%, #3B82F6 100%);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 102, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
+            background: #0066FF; cursor: pointer; margin-top: -8px; box-shadow: 0 2px 6px rgba(0,102,255,0.4);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px;
+        }
+
+        /* Code Block Styling */
+        pre {
+            border-radius: 12px;
+            margin: 0 !important;
+            height: 100%;
+        }
+        
+        /* Tab Transitions */
+        .tab-content { display: none; animation: fadeIn 0.3s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="font-body text-brand-dark antialiased overflow-x-hidden relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-icon">
+                <i data-lucide="graduation-cap" width="36" height="36"></i>
+            </div>
+            <h2 class="font-sans font-bold text-2xl tracking-tight text-brand-dark">OXELION</h2>
+            <p class="text-[10px] text-brand-blue uppercase font-bold tracking-[0.3em] mt-3">Academic Hub</p>
+        </div>
+    </div>
+
+    <!-- ML MODAL CONTAINER -->
+    <div id="mlModal" class="fixed inset-0 z-[100] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeMLTool()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-4 md:inset-x-20 md:inset-y-10 bg-white rounded-[30px] shadow-2xl overflow-hidden flex flex-col animate-[scaleIn_0.3s_ease-out]">
+            
+            <!-- Header -->
+            <div class="h-20 border-b border-gray-100 flex items-center justify-between px-6 bg-white shrink-0">
+                <div class="flex items-center gap-4">
+                    <div id="mlIconContainer" class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-blue/20">
+                        <!-- Icon injected here -->
+                    </div>
+                    <div>
+                        <h3 id="mlTitle" class="font-bold text-xl leading-tight">Tool Name</h3>
+                        <div class="flex gap-4 text-sm font-medium text-gray-400 mt-1" id="tabButtons">
+                            <!-- Tabs injected here -->
+                        </div>
+                    </div>
+                </div>
+                <button onclick="closeMLTool()" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors">
+                    <i data-lucide="x" size="20"></i>
+                </button>
+            </div>
+
+            <!-- Body (Dynamic Content) -->
+            <div id="mlBody" class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <!-- Content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-blob -top-20 -left-20"></div>
+    <div class="bg-blob top-40 right-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group select-none">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-tr from-brand-blue to-blue-400 rounded-xl text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="graduation-cap" size="20"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-sans font-bold text-xl tracking-tight leading-none text-brand-dark group-hover:text-brand-blue transition-colors">Oxelion</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Academic Hub</span>
+                </div>
+            </a>
+            <!-- Desktop Menu -->
+            <div class="hidden xl:flex items-center gap-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Home</a>
+                <a href="code.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Code</a>
+                <a href="resources.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Resources</a>
+                <a href="tools.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Tools</a>
+                <a href="ml.html" class="text-xs font-bold uppercase tracking-wide text-brand-blue transition-colors">ML Center</a>
+                <a href="blogs.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Blogs</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="contact.html" class="px-5 py-2 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-brand-dark/20">
+                    Contact Us
+                </a>
+                <button class="xl:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-28 min-h-screen">
+        <div class="container mx-auto px-6 py-12">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-16 max-w-2xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
+                    <span class="w-2 h-2 rounded-full bg-brand-blue"></span>
+                    Playground
+                </div>
+                <h1 class="font-sans text-5xl font-medium mb-4">ML <span class="text-brand-blue script-text text-6xl">Center</span></h1>
+                <p class="text-gray-500 text-lg">
+                    Interactive Machine Learning demos, model visualizations, and comprehensive roadmaps to master AI.
+                </p>
+            </div>
+
+            <!-- ML Projects Grid -->
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                
+                <!-- Project 1: Iris Classification -->
+                <div onclick="launchMLTool('iris')" class="bg-white rounded-[30px] p-8 border border-gray-100 shadow-sm hover-card flex flex-col md:flex-row gap-8 items-center cursor-pointer group">
+                    <div class="w-full md:w-1/3 aspect-square bg-pink-50 rounded-2xl flex items-center justify-center text-pink-500 flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i data-lucide="flower-2" size="48"></i>
+                    </div>
+                    <div class="flex-1 text-center md:text-left">
+                        <div class="mb-2">
+                            <span class="px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-xs font-bold uppercase tracking-wide">Classification</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Iris Species</h3>
+                        <p class="text-gray-500 mb-6 text-sm">The "Hello World" of ML. Predict flower species based on petal and sepal measurements using Decision Trees.</p>
+                        <button class="w-full md:w-auto px-6 py-3 bg-white border-2 border-gray-100 text-brand-dark rounded-xl font-bold hover:border-brand-blue hover:text-brand-blue transition-colors">Launch Demo</button>
+                    </div>
+                </div>
+
+                <!-- Project 2: Spam Detection -->
+                <div onclick="launchMLTool('spam')" class="bg-white rounded-[30px] p-8 border border-gray-100 shadow-sm hover-card flex flex-col md:flex-row gap-8 items-center cursor-pointer group">
+                    <div class="w-full md:w-1/3 aspect-square bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i data-lucide="mail-warning" size="48"></i>
+                    </div>
+                    <div class="flex-1 text-center md:text-left">
+                        <div class="mb-2">
+                            <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-bold uppercase tracking-wide">NLP</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Spam Detection</h3>
+                        <p class="text-gray-500 mb-6 text-sm">Natural Language Processing. Analyze text patterns to filter spam using Naive Bayes classifier.</p>
+                        <button class="w-full md:w-auto px-6 py-3 bg-white border-2 border-gray-100 text-brand-dark rounded-xl font-bold hover:border-brand-blue hover:text-brand-blue transition-colors">Launch Demo</button>
+                    </div>
+                </div>
+
+                <!-- Project 3: Movie Recommender -->
+                <div onclick="launchMLTool('movie')" class="bg-white rounded-[30px] p-8 border border-gray-100 shadow-sm hover-card flex flex-col md:flex-row gap-8 items-center cursor-pointer group">
+                    <div class="w-full md:w-1/3 aspect-square bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i data-lucide="clapperboard" size="48"></i>
+                    </div>
+                    <div class="flex-1 text-center md:text-left">
+                        <div class="mb-2">
+                            <span class="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-bold uppercase tracking-wide">Recommender</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Movie Recommender</h3>
+                        <p class="text-gray-500 mb-6 text-sm">Content-based filtering system. Get personalized movie suggestions based on genres you like.</p>
+                        <button class="w-full md:w-auto px-6 py-3 bg-white border-2 border-gray-100 text-brand-dark rounded-xl font-bold hover:border-brand-blue hover:text-brand-blue transition-colors">Find Movies</button>
+                    </div>
+                </div>
+
+                <!-- Feature: ML Roadmap -->
+                <div onclick="launchMLTool('roadmap')" class="bg-brand-dark rounded-[30px] p-8 border border-gray-800 shadow-lg text-white relative overflow-hidden flex flex-col justify-between hover-card group cursor-pointer">
+                    <!-- Decor -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-blue rounded-full blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-sm"><i data-lucide="map" size="32"></i></div>
+                            <span class="px-3 py-1 bg-brand-blue rounded-full text-xs font-bold text-white">GUIDE</span>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-2">Complete ML Roadmap</h3>
+                        <p class="text-gray-400 mb-6 max-w-sm">From Python basics to Deep Learning. A curated path to becoming an ML Engineer.</p>
+                    </div>
+
+                    <div class="relative z-10 mt-4">
+                        <button class="w-full py-4 bg-brand-blue rounded-xl font-bold hover:bg-white hover:text-brand-dark transition-colors flex items-center justify-center gap-2">
+                            Start Learning <i data-lucide="arrow-right" size="18"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-bold">
+                            <i data-lucide="graduation-cap" size="20"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight">OXELION</span>
+                    </div>
+                    <p class="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Empowering students with open-source academic resources. Built by students, for students.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="resources.html" class="hover:text-brand-blue transition-colors">Resources Library</a></li>
+                        <li><a href="code.html" class="hover:text-brand-blue transition-colors">Code Solutions</a></li>
+                        <li><a href="ml.html" class="hover:text-brand-blue transition-colors">ML Playground</a></li>
+                        <li><a href="tools.html" class="hover:text-brand-blue transition-colors">Student Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a></li>
+                        <li><a href="contact.html" class="hover:text-brand-blue transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    © 2024 Oxelion. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="https://github.com/online-in" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="github" size="20"></i></a>
+                    <a href="https://x.com/bhara12549" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="twitter" size="20"></i></a>
+                    <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333/" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="linkedin" size="20"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        lucide.createIcons();
+
+        // Loader
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 2000);
+        });
+
+        // --- ML Tool Logic ---
+        const modal = document.getElementById('mlModal');
+        const mlTitle = document.getElementById('mlTitle');
+        const mlIconContainer = document.getElementById('mlIconContainer');
+        const mlBody = document.getElementById('mlBody');
+        const tabButtons = document.getElementById('tabButtons');
+
+        const mlTools = {
+            iris: {
+                title: 'Iris Flower Classification',
+                icon: '<i data-lucide="flower-2" size="24"></i>',
+                bg: 'bg-pink-500',
+                renderDemo: () => `
+                    <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-8 h-full">
+                        <div class="flex-1 bg-white p-6 rounded-2xl shadow-sm space-y-8">
+                            <div>
+                                <label class="flex justify-between text-sm font-bold text-gray-600 mb-2">Sepal Length <span id="sl-val">5.0</span>cm</label>
+                                <input type="range" min="4" max="8" step="0.1" value="5.0" oninput="updateIris(); document.getElementById('sl-val').innerText=this.value" id="sl">
+                            </div>
+                            <div>
+                                <label class="flex justify-between text-sm font-bold text-gray-600 mb-2">Sepal Width <span id="sw-val">3.5</span>cm</label>
+                                <input type="range" min="2" max="4.5" step="0.1" value="3.5" oninput="updateIris(); document.getElementById('sw-val').innerText=this.value" id="sw">
+                            </div>
+                            <div>
+                                <label class="flex justify-between text-sm font-bold text-gray-600 mb-2">Petal Length <span id="pl-val">1.4</span>cm</label>
+                                <input type="range" min="1" max="7" step="0.1" value="1.4" oninput="updateIris(); document.getElementById('pl-val').innerText=this.value" id="pl">
+                            </div>
+                            <div>
+                                <label class="flex justify-between text-sm font-bold text-gray-600 mb-2">Petal Width <span id="pw-val">0.2</span>cm</label>
+                                <input type="range" min="0.1" max="2.5" step="0.1" value="0.2" oninput="updateIris(); document.getElementById('pw-val').innerText=this.value" id="pw">
+                            </div>
+                        </div>
+                        <div class="w-full md:w-80 bg-brand-dark text-white p-8 rounded-2xl flex flex-col items-center justify-center text-center shadow-2xl">
+                            <div class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Prediction</div>
+                            <div id="iris-result" class="text-4xl font-bold text-pink-400 mb-2">Setosa</div>
+                            <div class="text-xs text-gray-500">Based on Decision Tree Logic</div>
+                            <div class="mt-8 w-full">
+                                <div class="text-left text-xs font-bold text-gray-400 mb-1">Confidence</div>
+                                <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-pink-500 w-[95%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+                renderCode: () => `
+<pre><code class="language-python"># Iris Classification using Scikit-Learn
+from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+# 1. Load Data
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# 2. Split Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# 3. Train Model (Decision Tree)
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+
+# 4. Predict (Example: [5.0, 3.5, 1.4, 0.2])
+prediction = clf.predict([[5.0, 3.5, 1.4, 0.2]])
+print(iris.target_names[prediction][0]) 
+# Output: 'setosa'
+</code></pre>`
+            },
+            spam: {
+                title: 'Spam Detection (NLP)',
+                icon: '<i data-lucide="mail-warning" size="24"></i>',
+                bg: 'bg-orange-500',
+                renderDemo: () => `
+                    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm text-center">
+                        <textarea id="spamInput" rows="5" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 focus:outline-none focus:border-brand-blue mb-4 resize-none" placeholder="Type a message (e.g., 'Congratulations! You won a free gift card. Click here now.')"></textarea>
+                        
+                        <button onclick="checkSpam()" class="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200 mb-8">Analyze Message</button>
+
+                        <div id="spamResult" class="hidden animate-fade-in">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-700 font-bold text-sm mb-2" id="spamBadge">
+                                <div class="w-2 h-2 rounded-full bg-gray-500"></div> Neutral
+                            </div>
+                            <p class="text-gray-500 text-sm" id="spamText">Enter text to analyze.</p>
+                        </div>
+                    </div>`,
+                renderCode: () => `
+<pre><code class="language-python"># Spam Detection using Naive Bayes
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+# 1. Sample Data
+emails = [
+    "Win a free iphone now", "Meeting at 3pm", 
+    "Urgent! Claim your prize", "Project update attached"
+]
+labels = [1, 0, 1, 0] # 1 = Spam, 0 = Ham
+
+# 2. Convert Text to Numbers (Bag of Words)
+cv = CountVectorizer()
+X = cv.fit_transform(emails)
+
+# 3. Train Model
+model = MultinomialNB()
+model.fit(X, labels)
+
+# 4. Predict
+test_email = ["Free cash prize"]
+test_vec = cv.transform(test_email)
+print(model.predict(test_vec)) 
+# Output: [1] (Spam)
+</code></pre>`
+            },
+            movie: {
+                title: 'Movie Recommender System',
+                icon: '<i data-lucide="clapperboard" size="24"></i>',
+                bg: 'bg-purple-600',
+                renderDemo: () => `
+                    <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-sm">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Select Genre</label>
+                                <select id="movie-genre" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-blue" onchange="updateMovies()">
+                                    <option value="Action">Action</option>
+                                    <option value="Sci-Fi">Sci-Fi</option>
+                                    <option value="Drama">Drama</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Select a Movie You Liked</label>
+                                <select id="movie-select" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-brand-blue">
+                                    <option>The Dark Knight</option>
+                                    <option>Inception</option>
+                                    <option>Avengers: Endgame</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button onclick="recommendMovies()" class="w-full py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200 mb-8">Get Recommendations</button>
+
+                        <div id="rec-results" class="hidden space-y-4">
+                            <h4 class="font-bold text-gray-700 border-b border-gray-100 pb-2">Top 3 Picks for You</h4>
+                            <!-- Results injected here -->
+                        </div>
+                    </div>
+                `,
+                renderCode: () => `
+<pre><code class="language-python"># Content-Based Movie Recommender
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# 1. Dataset
+movies = pd.DataFrame([
+    {'title': 'The Matrix', 'tags': 'action sci-fi keanu'},
+    {'title': 'Inception', 'tags': 'action sci-fi dream'},
+    {'title': 'Titanic', 'tags': 'drama romance ship'}
+])
+
+# 2. Vectorize Tags
+cv = CountVectorizer(max_features=5000, stop_words='english')
+vectors = cv.fit_transform(movies['tags']).toarray()
+
+# 3. Calculate Similarity (Cosine)
+similarity = cosine_similarity(vectors)
+
+# 4. Recommend Function
+def recommend(movie):
+    idx = movies[movies['title'] == movie].index[0]
+    distances = similarity[idx]
+    # Sort by similarity score
+    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:4]
+    
+    for i in movie_list:
+        print(movies.iloc[i[0]].title)
+
+recommend('The Matrix')
+# Output: Inception...
+</code></pre>`
+            },
+            roadmap: {
+                title: 'Machine Learning Roadmap',
+                icon: '<i data-lucide="map" size="24"></i>',
+                bg: 'bg-brand-dark',
+                renderDemo: () => `
+                    <div class="max-w-3xl mx-auto space-y-8 relative pb-10">
+                        <div class="absolute left-6 top-4 bottom-4 w-1 bg-gray-200 rounded-full"></div>
+                        
+                        <!-- Step 1 -->
+                        <div class="relative pl-16">
+                            <div class="absolute left-3 top-1 w-7 h-7 bg-brand-blue rounded-full border-4 border-white shadow-sm z-10"></div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-lg text-brand-blue">1. Foundations & Math</h4>
+                                    <span class="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded">Month 1</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">Master the language and the math behind the magic.</p>
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Key Concepts</span>
+                                        <div class="flex gap-2 flex-wrap mt-1">
+                                            <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">Linear Algebra</span>
+                                            <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">Calculus</span>
+                                            <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">Statistics</span>
+                                            <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">Python</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Resources</span>
+                                        <ul class="text-sm text-gray-600 mt-1 space-y-1">
+                                            <li><a href="#" class="text-brand-blue hover:underline">MIT 18.06 Linear Algebra</a></li>
+                                            <li><a href="#" class="text-brand-blue hover:underline">3Blue1Brown (YouTube)</a> for Calculus intuition</li>
+                                            <li><a href="#" class="text-brand-blue hover:underline">Python for Data Science (FreeCodeCamp)</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative pl-16">
+                            <div class="absolute left-3 top-1 w-7 h-7 bg-green-500 rounded-full border-4 border-white shadow-sm z-10"></div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-lg text-green-600">2. Data Analysis & Viz</h4>
+                                    <span class="text-xs font-bold bg-green-50 text-green-600 px-2 py-1 rounded">Month 2</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">Data is fuel. Learn to clean, manipulate, and visualize it.</p>
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Libraries</span>
+                                        <div class="flex gap-2 flex-wrap mt-1">
+                                            <span class="px-2 py-1 bg-green-50 text-green-700 border border-green-100 rounded text-xs font-bold">NumPy</span>
+                                            <span class="px-2 py-1 bg-green-50 text-green-700 border border-green-100 rounded text-xs font-bold">Pandas</span>
+                                            <span class="px-2 py-1 bg-green-50 text-green-700 border border-green-100 rounded text-xs font-bold">Matplotlib</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tools & Resources</span>
+                                        <ul class="text-sm text-gray-600 mt-1 space-y-1">
+                                            <li><span class="font-semibold">Jupyter Notebooks</span> for experimentation.</li>
+                                            <li><a href="#" class="text-brand-blue hover:underline">Kaggle Datasets</a> for practice.</li>
+                                            <li>Book: <em>"Python for Data Analysis"</em> by Wes McKinney.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative pl-16">
+                            <div class="absolute left-3 top-1 w-7 h-7 bg-orange-500 rounded-full border-4 border-white shadow-sm z-10"></div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-lg text-orange-500">3. Classical ML Algorithms</h4>
+                                    <span class="text-xs font-bold bg-orange-50 text-orange-600 px-2 py-1 rounded">Month 3-4</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">The core algorithms using Scikit-Learn.</p>
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Algorithms</span>
+                                        <ul class="list-disc list-inside text-sm text-gray-600 mt-1 grid grid-cols-2 gap-1">
+                                            <li>Linear/Logistic Regression</li>
+                                            <li>Decision Trees & Random Forest</li>
+                                            <li>SVM & KNN</li>
+                                            <li>K-Means Clustering</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Top Resource</span>
+                                        <p class="text-sm text-gray-600 mt-1">
+                                            <a href="#" class="text-brand-blue hover:underline">Andrew Ng's Machine Learning Specialization</a> (Coursera)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="relative pl-16">
+                            <div class="absolute left-3 top-1 w-7 h-7 bg-purple-500 rounded-full border-4 border-white shadow-sm z-10"></div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-lg text-purple-600">4. Deep Learning</h4>
+                                    <span class="text-xs font-bold bg-purple-50 text-purple-600 px-2 py-1 rounded">Month 5-6</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">Neural Networks, Computer Vision, and NLP.</p>
+                                <div class="grid grid-cols-2 gap-4 mb-3">
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-bold text-sm text-gray-700">TensorFlow / PyTorch</div>
+                                        <div class="text-xs text-gray-500">Frameworks</div>
+                                    </div>
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-bold text-sm text-gray-700">Architectures</div>
+                                        <div class="text-xs text-gray-500">CNN, RNN, Transformers</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Must Visit</span>
+                                    <ul class="text-sm text-gray-600 mt-1">
+                                        <li><a href="#" class="text-brand-blue hover:underline">DeepLearning.AI</a> (Andrew Ng)</li>
+                                        <li><a href="#" class="text-brand-blue hover:underline">Fast.ai</a> (Practical Deep Learning)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 (New) -->
+                        <div class="relative pl-16">
+                            <div class="absolute left-3 top-1 w-7 h-7 bg-gray-800 rounded-full border-4 border-white shadow-sm z-10"></div>
+                            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-lg text-gray-700">5. MLOps & Deployment</h4>
+                                    <span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded">Month 7+</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4">Take models out of notebooks and into production.</p>
+                                <div class="flex gap-2 flex-wrap">
+                                    <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-bold text-gray-600">Docker</span>
+                                    <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-bold text-gray-600">Flask/FastAPI</span>
+                                    <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-bold text-gray-600">AWS Sagemaker</span>
+                                    <span class="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-bold text-gray-600">HuggingFace</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                renderCode: () => `
+<div class="h-full flex items-center justify-center text-gray-400">
+    <p>A roadmap is a guide, no code snippet needed here. Follow the steps!</p>
+</div>`
+            }
+        };
+
+        let currentTool = null;
+
+        function launchMLTool(toolId) {
+            currentTool = toolId;
+            const config = mlTools[toolId];
+            if(!config) return;
+
+            mlTitle.innerText = config.title;
+            mlIconContainer.innerHTML = config.icon;
+            mlIconContainer.className = `w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${config.bg}`;
+            
+            // Setup Tabs
+            if (toolId !== 'roadmap') {
+                tabButtons.innerHTML = `
+                    <button onclick="switchTab('demo')" id="tab-demo" class="hover:text-brand-blue transition-colors text-brand-blue border-b-2 border-brand-blue pb-1">Interactive Demo</button>
+                    <button onclick="switchTab('code')" id="tab-code" class="hover:text-brand-blue transition-colors pb-1">View Code</button>
+                `;
+            } else {
+                tabButtons.innerHTML = `<span class="text-brand-blue border-b-2 border-brand-blue pb-1">Learning Path</span>`;
+            }
+
+            // Default View
+            switchTab('demo');
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+            
+            // Init for specific tools
+            if(toolId === 'movie') updateMovies();
+        }
+
+        function switchTab(tabName) {
+            const config = mlTools[currentTool];
+            
+            // Update Tab UI
+            if (currentTool !== 'roadmap') {
+                const demoBtn = document.getElementById('tab-demo');
+                const codeBtn = document.getElementById('tab-code');
+                
+                if (tabName === 'demo') {
+                    demoBtn.classList.add('text-brand-blue', 'border-b-2', 'border-brand-blue');
+                    codeBtn.classList.remove('text-brand-blue', 'border-b-2', 'border-brand-blue');
+                    mlBody.innerHTML = `<div class="tab-content active">${config.renderDemo()}</div>`;
+                    
+                    // Re-init specific logic for demos
+                    if(currentTool === 'iris') updateIris();
+                    if(currentTool === 'movie') updateMovies();
+                } else {
+                    codeBtn.classList.add('text-brand-blue', 'border-b-2', 'border-brand-blue');
+                    demoBtn.classList.remove('text-brand-blue', 'border-b-2', 'border-brand-blue');
+                    mlBody.innerHTML = `<div class="tab-content active h-full">${config.renderCode()}</div>`;
+                    Prism.highlightAllUnder(mlBody);
+                }
+            } else {
+                mlBody.innerHTML = `<div class="tab-content active">${config.renderDemo()}</div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function closeMLTool() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- Logic: Iris ---
+        function updateIris() {
+            const pw = parseFloat(document.getElementById('pw').value);
+            const pl = parseFloat(document.getElementById('pl').value);
+            const resText = document.getElementById('iris-result');
+            
+            if (pw < 0.8) {
+                resText.innerText = "Setosa";
+                resText.className = "text-4xl font-bold text-pink-400 mb-2";
+            } else if (pw < 1.75 && pl < 4.9) {
+                resText.innerText = "Versicolor";
+                resText.className = "text-4xl font-bold text-purple-400 mb-2";
+            } else {
+                resText.innerText = "Virginica";
+                resText.className = "text-4xl font-bold text-blue-400 mb-2";
+            }
+        }
+
+        // --- Logic: Spam ---
+        function checkSpam() {
+            const text = document.getElementById('spamInput').value.toLowerCase();
+            const badWords = ['free', 'win', 'winner', 'money', 'urgent', 'click', 'offer', 'buy', 'cash', 'prize', 'gift'];
+            
+            let score = 0;
+            badWords.forEach(w => {
+                if(text.includes(w)) score++;
+            });
+
+            const resDiv = document.getElementById('spamResult');
+            const badge = document.getElementById('spamBadge');
+            const resText = document.getElementById('spamText');
+
+            resDiv.classList.remove('hidden');
+
+            if (score > 0) {
+                badge.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-700 font-bold text-sm mb-2";
+                badge.innerHTML = `<div class="w-2 h-2 rounded-full bg-red-500"></div> Spam Detected`;
+                resText.innerText = `High probability of spam. Found ${score} trigger keywords.`;
+            } else {
+                badge.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-bold text-sm mb-2";
+                badge.innerHTML = `<div class="w-2 h-2 rounded-full bg-green-500"></div> Looks Safe`;
+                resText.innerText = "Message seems legitimate.";
+            }
+        }
+
+        // --- Logic: Movie Recommender (Mock) ---
+        const moviesDB = {
+            'Action': ['The Dark Knight', 'Inception', 'Avengers: Endgame', 'Mad Max: Fury Road', 'John Wick', 'Gladiator'],
+            'Sci-Fi': ['Interstellar', 'The Matrix', 'Blade Runner 2049', 'Arrival', 'Dune', 'Star Wars'],
+            'Drama': ['The Shawshank Redemption', 'Forrest Gump', 'The Godfather', 'Fight Club', 'Parasite', 'Joker']
+        };
+
+        function updateMovies() {
+            const genre = document.getElementById('movie-genre').value;
+            const select = document.getElementById('movie-select');
+            select.innerHTML = '';
+            
+            moviesDB[genre].slice(0, 3).forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.innerText = m;
+                select.appendChild(opt);
+            });
+        }
+
+        function recommendMovies() {
+            const genre = document.getElementById('movie-genre').value;
+            const selected = document.getElementById('movie-select').value;
+            const results = document.getElementById('rec-results');
+            
+            // Mock recommendations (just picking other movies from same genre)
+            const recs = moviesDB[genre].filter(m => m !== selected).slice(0, 3);
+            
+            results.innerHTML = `
+                <h4 class="font-bold text-gray-700 border-b border-gray-100 pb-2 mb-3">Because you liked "${selected}":</h4>
+                ${recs.map(m => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                        <span class="font-medium text-gray-700">${m}</span>
+                        <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">${Math.floor(Math.random() * (99 - 85) + 85)}% Match</span>
+                    </div>
+                `).join('')}
+            `;
+            results.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oxelion - Student Academic Hub</title>
+    
+    <!-- Fonts: Poppins (Geometric Sans) and Allura (Script) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Tailwind -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        script: ['Allura', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            dark: '#0B1120',
+                            light: '#F5F7FA',
+                            gray: '#64748B',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(0, 102, 255, 0.2)',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FC; color: #0B1120; }
+        .script-text { font-family: 'Allura', cursive; line-height: 1; }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15); }
+        .bg-blob {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        .loader-content { text-align: center; animation: fadeIn 0.5s ease-out; }
+        .loader-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0066FF 0%, #3B82F6 100%);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 102, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+    </style>
+</head>
+<body class="font-body text-brand-dark antialiased overflow-x-hidden relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-icon">
+                <i data-lucide="graduation-cap" width="36" height="36"></i>
+            </div>
+            <h2 class="font-sans font-bold text-2xl tracking-tight text-brand-dark">OXELION</h2>
+            <p class="text-[10px] text-brand-blue uppercase font-bold tracking-[0.3em] mt-3">Academic Hub</p>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-blob -top-20 -left-20"></div>
+    <div class="bg-blob top-40 right-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center gap-3 group select-none">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-tr from-brand-blue to-blue-400 rounded-xl text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="graduation-cap" size="20"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-sans font-bold text-xl tracking-tight leading-none text-brand-dark group-hover:text-brand-blue transition-colors">Oxelion</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Academic Hub</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden xl:flex items-center gap-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-wide text-brand-blue transition-colors">Home</a>
+                <a href="code.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Code</a>
+                <a href="resources.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Resources</a>
+                <a href="tools.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Tools</a>
+                <a href="ml.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">ML Center</a>
+                <a href="blogs.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Blogs</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="contact.html" class="px-5 py-2 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-brand-dark/20">
+                    Contact Us
+                </a>
+                <button class="xl:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-20 min-h-screen">
+        
+        <!-- Hero Section -->
+        <section class="container mx-auto px-6 py-12 md:py-24">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Text Content -->
+                <div class="space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-100 shadow-sm text-brand-dark text-xs font-bold uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Trusted by 10,000+ Students
+                    </div>
+                    
+                    <h1 class="font-sans text-6xl md:text-7xl font-medium leading-[1.1]">
+                        Master Your <br>
+                        <span class="text-brand-blue script-text text-8xl ml-2">Semester</span>
+                    </h1>
+                    
+                    <p class="text-lg text-gray-500 max-w-md leading-relaxed">
+                        One-stop destination for University Notes, Coding Solutions, ML Projects, and Academic Tools.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4 pt-4">
+                        <a href="resources.html" class="w-full sm:w-auto px-8 py-4 bg-brand-blue text-white rounded-full font-bold shadow-lg shadow-brand-blue/30 hover:bg-blue-600 transition-colors text-center">
+                            Browse Library
+                        </a>
+                        <a href="code.html" class="w-full sm:w-auto px-8 py-4 bg-white text-brand-dark border border-gray-200 rounded-full font-bold hover:bg-gray-50 transition-colors text-center flex items-center justify-center gap-2">
+                            <i data-lucide="code-2" size="18"></i> View Code
+                        </a>
+                    </div>
+
+                    <!-- Trust Indicators -->
+                    <div class="pt-8 border-t border-gray-200/50">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Resources for</p>
+                        <div class="flex gap-6 text-gray-400">
+                            <div class="flex items-center gap-2"><i data-lucide="database" size="18"></i> <span class="font-bold text-sm">DBMS</span></div>
+                            <div class="flex items-center gap-2"><i data-lucide="server" size="18"></i> <span class="font-bold text-sm">OS</span></div>
+                            <div class="flex items-center gap-2"><i data-lucide="network" size="18"></i> <span class="font-bold text-sm">Networks</span></div>
+                            <div class="flex items-center gap-2"><i data-lucide="cpu" size="18"></i> <span class="font-bold text-sm">AI/ML</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Visual -->
+                <div class="relative h-[600px] hidden md:block">
+                    <!-- Decor Circles -->
+                    <div class="absolute top-10 right-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
+                    <div class="absolute bottom-10 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style="animation-delay: 2s"></div>
+
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="relative w-[450px] h-[580px] bg-white rounded-[40px] shadow-2xl p-4 border border-gray-100 transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
+                            <div class="absolute -top-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce-slow">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                                    <i data-lucide="check-circle" size="24"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-bold uppercase">Status</div>
+                                    <div class="font-bold text-brand-dark">Exam Ready</div>
+                                </div>
+                            </div>
+
+                            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1770&auto=format&fit=crop" alt="Student" class="w-full h-full object-cover rounded-[32px]">
+                            
+                            <div class="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-brand-blue uppercase">Latest Upload</span>
+                                    <span class="text-xs text-gray-400">2 min ago</span>
+                                </div>
+                                <h4 class="font-bold text-brand-dark">Complete DSA Roadmap</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="bg-brand-dark text-white py-12">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div class="text-center md:text-left">
+                        <div class="text-4xl font-bold text-brand-blue mb-1">500+</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest">Coding Solutions</div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <div class="text-4xl font-bold text-brand-blue mb-1">50+</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest">PDF Notes</div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <div class="text-4xl font-bold text-brand-blue mb-1">10+</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest">Interactive Tools</div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <div class="text-4xl font-bold text-brand-blue mb-1">100%</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest">Free Resources</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="container mx-auto px-6 py-20">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="font-sans text-4xl font-medium mb-4">Everything You Need to <span class="text-brand-blue script-text text-6xl">Succeed</span></h2>
+                <p class="text-gray-500">We've organized the chaos of engineering semesters into three distinct pillars.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <a href="resources.html" class="group relative bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-brand-blue mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="book-open" size="32"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Resource Library</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6">Access handwritten notes, cheat sheets, and previous year questions for all major subjects.</p>
+                    <div class="flex items-center text-sm font-bold text-brand-blue">
+                        Explore Notes <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="code.html" class="group relative bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600 mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="code" size="32"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Code Repository</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6">Copy-paste ready solutions for Lab experiments in Python, Java, C, and DSA.</p>
+                    <div class="flex items-center text-sm font-bold text-yellow-600">
+                        Get Solutions <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="ml.html" class="group relative bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="brain-circuit" size="32"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">ML Center</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed mb-6">Interactive Machine Learning demos and roadmaps to kickstart your AI journey.</p>
+                    <div class="flex items-center text-sm font-bold text-purple-600">
+                        Try Demos <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Popular Topics (New) -->
+        <section class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 class="font-sans text-3xl font-bold mb-2">Popular Topics</h2>
+                        <p class="text-gray-500 text-sm">Jump straight into what you need.</p>
+                    </div>
+                    <a href="resources.html" class="text-brand-blue font-bold text-sm hover:underline">View All</a>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <a href="resources.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="database" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">DBMS</span>
+                    </a>
+                    <a href="resources.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="server" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">Op. Systems</span>
+                    </a>
+                    <a href="code.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="code-2" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">DSA</span>
+                    </a>
+                    <a href="code.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="file-code" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">Python</span>
+                    </a>
+                    <a href="code.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="coffee" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">Java</span>
+                    </a>
+                    <a href="ml.html" class="bg-white p-4 rounded-xl border border-gray-200 text-center hover:border-brand-blue hover:text-brand-blue transition-colors">
+                        <i data-lucide="bot" class="mx-auto mb-2 text-gray-400"></i>
+                        <span class="font-bold text-sm block">AI/ML</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials (New) -->
+        <section class="container mx-auto px-6 py-20">
+            <h2 class="font-sans text-3xl font-bold text-center mb-12">Student <span class="text-brand-blue script-text text-5xl">Love</span></h2>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">"The DSA cheat sheet is absolutely a lifesaver. Helped me crack my internship interview!"</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <img src="https://i.pravatar.cc/150?img=3" alt="User">
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm">Rahul S.</div>
+                            <div class="text-xs text-gray-400">CS Undergrad</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">"Finally understood Normalization in DBMS thanks to the handwritten notes. Highly recommend."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="User">
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm">Priya M.</div>
+                            <div class="text-xs text-gray-400">IT Student</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-soft border border-gray-50">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                        <i data-lucide="star" size="16" fill="currentColor"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">"The GPA calculator and Resume builder tools are simple but super effective."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="User">
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm">Aditya K.</div>
+                            <div class="text-xs text-gray-400">Final Year</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter CTA (New) -->
+        <section class="container mx-auto px-6 mb-20">
+            <div class="bg-brand-blue rounded-[40px] p-12 text-center text-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <div class="relative z-10 max-w-xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-4">Stay Updated</h2>
+                    <p class="text-blue-100 mb-8">Join our newsletter to get the latest notes, code snippets, and exam tips directly to your inbox.</p>
+                    <div class="flex gap-2 bg-white/10 p-2 rounded-full backdrop-blur-sm border border-white/20">
+                        <input type="email" placeholder="Enter your email address" class="flex-1 bg-transparent border-none outline-none px-4 text-white placeholder-blue-200">
+                        <button class="bg-white text-brand-blue px-6 py-2 rounded-full font-bold hover:bg-blue-50 transition-colors">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-bold">
+                            <i data-lucide="graduation-cap" size="20"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight">OXELION</span>
+                    </div>
+                    <p class="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Empowering students with open-source academic resources. Built by students, for students.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="resources.html" class="hover:text-brand-blue transition-colors">Resources Library</a></li>
+                        <li><a href="code.html" class="hover:text-brand-blue transition-colors">Code Solutions</a></li>
+                        <li><a href="ml.html" class="hover:text-brand-blue transition-colors">ML Playground</a></li>
+                        <li><a href="tools.html" class="hover:text-brand-blue transition-colors">Student Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a></li>
+                        <li><a href="contact.html" class="hover:text-brand-blue transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    © 2024 Oxelion. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="https://github.com/online-in" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="github" size="20"></i></a>
+                    <a href="https://x.com/bhara12549" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="twitter" size="20"></i></a>
+                    <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333/" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="linkedin" size="20"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Script & Icons -->
+    <script>
+        lucide.createIcons();
+
+        // Loader Logic
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            
+            // Set timeout for 2.5 seconds (2500ms)
+            setTimeout(() => {
+                // Fade out effect
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

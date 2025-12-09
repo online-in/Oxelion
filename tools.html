@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Tools - Oxelion</title>
+    
+    <!-- Fonts: Poppins (Geometric Sans) and Allura (Script) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Tailwind -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        script: ['Allura', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            dark: '#0B1120',
+                            light: '#F5F7FA',
+                            gray: '#64748B',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(0, 102, 255, 0.2)',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FC; color: #0B1120; }
+        .script-text { font-family: 'Allura', cursive; line-height: 1; }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15); }
+        .bg-blob {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        .loader-content { text-align: center; animation: fadeIn 0.5s ease-out; }
+        .loader-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0066FF 0%, #3B82F6 100%);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 102, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+
+        /* Tool Specific Styles */
+        .chat-msg { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Print Styles for Notes */
+        @media print {
+            body * { visibility: hidden; }
+            #note-print-area, #note-print-area * { visibility: visible; }
+            #note-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 2rem; }
+        }
+        
+        /* Timer Animation */
+        .timer-circle { transition: stroke-dashoffset 1s linear; }
+    </style>
+</head>
+<body class="font-body text-brand-dark antialiased overflow-x-hidden relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-icon">
+                <i data-lucide="graduation-cap" width="36" height="36"></i>
+            </div>
+            <h2 class="font-sans font-bold text-2xl tracking-tight text-brand-dark">OXELION</h2>
+            <p class="text-[10px] text-brand-blue uppercase font-bold tracking-[0.3em] mt-3">Academic Hub</p>
+        </div>
+    </div>
+
+    <!-- TOOL MODAL CONTAINER -->
+    <div id="toolModal" class="fixed inset-0 z-[100] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeTool()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-4 md:inset-x-20 md:inset-y-10 bg-white rounded-[30px] shadow-2xl overflow-hidden flex flex-col animate-[scaleIn_0.3s_ease-out]">
+            
+            <!-- Header -->
+            <div class="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div id="toolIconContainer" class="w-8 h-8 rounded-lg flex items-center justify-center text-white">
+                        <!-- Icon injected here -->
+                    </div>
+                    <h3 id="toolTitle" class="font-bold text-lg">Tool Name</h3>
+                </div>
+                <button onclick="closeTool()" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors">
+                    <i data-lucide="x" size="20"></i>
+                </button>
+            </div>
+
+            <!-- Body (Dynamic Content) -->
+            <div id="toolBody" class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <!-- Tool HTML injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-blob -top-20 -left-20"></div>
+    <div class="bg-blob top-40 right-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group select-none">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-tr from-brand-blue to-blue-400 rounded-xl text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="graduation-cap" size="20"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-sans font-bold text-xl tracking-tight leading-none text-brand-dark group-hover:text-brand-blue transition-colors">Oxelion</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Academic Hub</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden xl:flex items-center gap-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Home</a>
+                <a href="code.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Code</a>
+                <a href="resources.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Resources</a>
+                <a href="tools.html" class="text-xs font-bold uppercase tracking-wide text-brand-blue transition-colors">Tools</a>
+                <a href="ml.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">ML Center</a>
+                <a href="blogs.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Blogs</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="contact.html" class="px-5 py-2 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-brand-dark/20">
+                    Contact Us
+                </a>
+                <button class="xl:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-28 min-h-screen">
+        <div class="container mx-auto px-6 py-12">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-16 max-w-2xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
+                    <span class="w-2 h-2 rounded-full bg-brand-blue"></span>
+                    Utilities
+                </div>
+                <h1 class="font-sans text-5xl font-medium mb-4">Tools for <span class="text-brand-blue script-text text-6xl">Students</span></h1>
+                <p class="text-gray-500 text-lg">
+                    Handy utilities to help with academics, productivity, and focus.
+                </p>
+            </div>
+
+            <!-- Tools Grid -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                
+                <!-- Tool 1: AI Chat Assistant -->
+                <div onclick="launchTool('chat')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-brand-blue flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="bot" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">AI Chat Assistant</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Study Help</p>
+                        <p class="text-sm text-gray-500 leading-tight">Ask academic doubts and get instant code explanations.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 2: Grade Calculator -->
+                <div onclick="launchTool('grades')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="calculator" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Grade Calculator</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Academics</p>
+                        <p class="text-sm text-gray-500 leading-tight">Calculate SGPA/CGPA based on credit points.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 3: Pomodoro Timer -->
+                <div onclick="launchTool('pomodoro')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-500 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="timer" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Pomodoro Focus</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Productivity</p>
+                        <p class="text-sm text-gray-500 leading-tight">Boost focus with timed work and break intervals.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 4: Task Manager -->
+                <div onclick="launchTool('todo')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="check-square" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Task Manager</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Productivity</p>
+                        <p class="text-sm text-gray-500 leading-tight">Organize your assignments and daily to-dos.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 5: Password Generator -->
+                <div onclick="launchTool('password')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="lock" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Password Gen</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Security</p>
+                        <p class="text-sm text-gray-500 leading-tight">Generate secure, random passwords for your accounts.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 6: Unit Converter -->
+                <div onclick="launchTool('converter')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="arrow-left-right" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Unit Converter</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Utilities</p>
+                        <p class="text-sm text-gray-500 leading-tight">Convert Length, Mass, and Temperature instantly.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 7: Notes to PDF -->
+                <div onclick="launchTool('notes')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="file-text" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">Notes-to-PDF</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Converter</p>
+                        <p class="text-sm text-gray-500 leading-tight">Convert your markdown notes into clean PDF documents.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 8: GPA Tracker -->
+                <div onclick="launchTool('gpa')" class="group bg-white p-6 rounded-[24px] border border-gray-100 flex items-center gap-4 hover-card cursor-pointer">
+                    <div class="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="trending-up" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg">GPA Tracker</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Progress</p>
+                        <p class="text-sm text-gray-500 leading-tight">Visualize your academic performance over semesters.</p>
+                    </div>
+                </div>
+
+                <!-- Tool 9: Resume Builder (Coming Soon) -->
+                <div class="group bg-gray-50 p-6 rounded-[24px] border border-dashed border-gray-300 flex items-center gap-4 opacity-75 cursor-not-allowed">
+                    <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
+                        <i data-lucide="hammer" size="24"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-gray-600">Resume Builder</h4>
+                        <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Coming Soon</p>
+                        <p class="text-sm text-gray-500 leading-tight">Create professional ATS-friendly resumes.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-bold">
+                            <i data-lucide="graduation-cap" size="20"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight">OXELION</span>
+                    </div>
+                    <p class="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Empowering students with open-source academic resources. Built by students, for students.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="resources.html" class="hover:text-brand-blue transition-colors">Resources Library</a></li>
+                        <li><a href="code.html" class="hover:text-brand-blue transition-colors">Code Solutions</a></li>
+                        <li><a href="ml.html" class="hover:text-brand-blue transition-colors">ML Playground</a></li>
+                        <li><a href="tools.html" class="hover:text-brand-blue transition-colors">Student Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a></li>
+                        <li><a href="contact.html" class="hover:text-brand-blue transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    © 2024 Oxelion. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="https://github.com/online-in" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="github" size="20"></i></a>
+                    <a href="https://x.com/bhara12549" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="twitter" size="20"></i></a>
+                    <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333/" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="linkedin" size="20"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // --- Loader ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 2000);
+        });
+
+        // --- Tools Logic ---
+        const modal = document.getElementById('toolModal');
+        const toolTitle = document.getElementById('toolTitle');
+        const toolIconContainer = document.getElementById('toolIconContainer');
+        const toolBody = document.getElementById('toolBody');
+
+        const toolConfigs = {
+            chat: {
+                title: 'Oxelion AI Assistant',
+                icon: '<i data-lucide="bot" size="20"></i>',
+                bg: 'bg-brand-blue',
+                render: () => `
+                    <div class="flex flex-col h-full bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <div id="chatBox" class="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-50">
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs shrink-0">AI</div>
+                                <div class="bg-white p-3 rounded-2xl rounded-tl-none text-sm text-gray-600 shadow-sm border border-gray-100">
+                                    Hello! I am your study assistant. Ask me anything about Python, Java, or DSA!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white border-t border-gray-100 flex gap-2">
+                            <input type="text" id="chatInput" placeholder="Type your question..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-blue">
+                            <button onclick="sendMessage()" class="bg-brand-blue text-white p-2 rounded-xl hover:bg-blue-600 transition-colors"><i data-lucide="send" size="18"></i></button>
+                        </div>
+                    </div>
+                `
+            },
+            grades: {
+                title: 'SGPA Calculator',
+                icon: '<i data-lucide="calculator" size="20"></i>',
+                bg: 'bg-green-600',
+                render: () => `
+                    <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-6">
+                            <h4 class="font-bold text-gray-700">Course List</h4>
+                            <button onclick="addCourseRow()" class="text-sm text-brand-blue font-bold hover:underline">+ Add Subject</button>
+                        </div>
+                        <div id="courseRows" class="space-y-3 mb-6">
+                            ${getCourseRowHTML()}
+                            ${getCourseRowHTML()}
+                            ${getCourseRowHTML()}
+                        </div>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                            <button onclick="calculateSGPA()" class="bg-brand-dark text-white px-6 py-2 rounded-xl font-bold hover:bg-gray-800 transition-colors">Calculate</button>
+                            <div class="text-right">
+                                <span class="block text-xs text-gray-400 font-bold uppercase">Your SGPA</span>
+                                <span id="sgpaResult" class="text-3xl font-bold text-brand-blue">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            password: {
+                title: 'Password Generator',
+                icon: '<i data-lucide="lock" size="20"></i>',
+                bg: 'bg-purple-600',
+                render: () => `
+                    <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-sm text-center">
+                        <div class="bg-gray-100 p-4 rounded-xl mb-6 flex items-center justify-between">
+                            <span id="passwordOutput" class="font-mono text-xl font-bold text-gray-700 tracking-wider">********</span>
+                            <button onclick="copyPassword()" class="text-gray-400 hover:text-brand-blue"><i data-lucide="copy" size="20"></i></button>
+                        </div>
+                        <div class="space-y-6 mb-8 text-left">
+                            <div>
+                                <label class="flex justify-between text-sm font-bold text-gray-500 mb-2">
+                                    Length <span id="lengthVal" class="text-brand-dark">12</span>
+                                </label>
+                                <input type="range" id="passLength" min="6" max="32" value="12" class="w-full accent-purple-600" oninput="document.getElementById('lengthVal').innerText = this.value">
+                            </div>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" id="incNum" checked class="accent-purple-600"> Numbers
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" id="incSym" checked class="accent-purple-600"> Symbols
+                                </label>
+                            </div>
+                        </div>
+                        <button onclick="generatePassword()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-200">Generate Password</button>
+                    </div>
+                `
+            },
+            notes: {
+                title: 'Quick Notes',
+                icon: '<i data-lucide="file-text" size="20"></i>',
+                bg: 'bg-yellow-600',
+                render: () => `
+                    <div class="bg-white h-full flex flex-col rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50 flex gap-2">
+                            <button onclick="printNotes()" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:text-brand-blue flex items-center gap-2">
+                                <i data-lucide="printer" size="14"></i> Print / Save PDF
+                            </button>
+                            <span class="ml-auto text-xs text-gray-400 flex items-center">Auto-saves locally</span>
+                        </div>
+                        <div id="note-print-area" class="flex-1 relative">
+                            <textarea id="noteArea" class="w-full h-full p-6 resize-none focus:outline-none text-gray-700 leading-relaxed" placeholder="Start typing your notes here..."></textarea>
+                        </div>
+                    </div>
+                `
+            },
+            gpa: {
+                title: 'GPA Tracker',
+                icon: '<i data-lucide="trending-up" size="20"></i>',
+                bg: 'bg-orange-500',
+                render: () => `
+                    <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-sm">
+                        <div class="flex gap-4 mb-6 overflow-x-auto pb-2" id="semesterList">
+                            <!-- Semesters added dynamically -->
+                        </div>
+                        <div class="bg-orange-50 p-6 rounded-2xl text-center mb-6">
+                             <div class="text-sm font-bold text-orange-600 uppercase mb-1">Cumulative GPA (CGPA)</div>
+                             <div id="cgpaDisplay" class="text-5xl font-bold text-brand-dark">0.0</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                             <input type="number" id="semGpaInput" placeholder="Sem GPA (e.g. 8.5)" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none">
+                             <button onclick="addSemester()" class="bg-brand-dark text-white rounded-xl font-bold hover:bg-gray-800">Add Semester</button>
+                        </div>
+                    </div>
+                `
+            },
+            pomodoro: {
+                title: 'Pomodoro Focus',
+                icon: '<i data-lucide="timer" size="20"></i>',
+                bg: 'bg-red-500',
+                render: () => `
+                    <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-sm text-center">
+                        <div class="flex justify-center gap-2 mb-8">
+                            <button onclick="setTimerMode('work')" class="px-4 py-2 rounded-full bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors" id="mode-work">Work</button>
+                            <button onclick="setTimerMode('short')" class="px-4 py-2 rounded-full bg-white text-gray-500 font-bold text-sm hover:bg-gray-100 transition-colors" id="mode-short">Short Break</button>
+                            <button onclick="setTimerMode('long')" class="px-4 py-2 rounded-full bg-white text-gray-500 font-bold text-sm hover:bg-gray-100 transition-colors" id="mode-long">Long Break</button>
+                        </div>
+                        <div class="relative w-64 h-64 mx-auto mb-8 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="none" class="text-gray-100" />
+                                <circle id="timerCircle" cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="none" class="text-red-500 timer-circle" stroke-dasharray="754" stroke-dashoffset="0" stroke-linecap="round" />
+                            </svg>
+                            <div class="absolute text-6xl font-bold text-gray-800 font-mono" id="timerDisplay">25:00</div>
+                        </div>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="toggleTimer()" id="timerBtn" class="w-32 bg-red-500 text-white py-3 rounded-xl font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-200">Start</button>
+                            <button onclick="resetTimer()" class="w-14 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"><i data-lucide="rotate-ccw" class="mx-auto" size="20"></i></button>
+                        </div>
+                    </div>
+                `
+            },
+            todo: {
+                title: 'Task Manager',
+                icon: '<i data-lucide="check-square" size="20"></i>',
+                bg: 'bg-teal-600',
+                render: () => `
+                    <div class="max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-sm">
+                        <div class="flex gap-3 mb-6">
+                            <input type="text" id="taskInput" placeholder="Add a new task..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-teal-500">
+                            <button onclick="addTask()" class="bg-teal-600 text-white px-6 rounded-xl hover:bg-teal-700 transition-colors"><i data-lucide="plus" size="24"></i></button>
+                        </div>
+                        <div id="taskList" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Tasks added here -->
+                            <div class="text-center text-gray-400 py-10">No tasks yet. Add one above!</div>
+                        </div>
+                    </div>
+                `
+            },
+            converter: {
+                title: 'Unit Converter',
+                icon: '<i data-lucide="arrow-left-right" size="20"></i>',
+                bg: 'bg-indigo-600',
+                render: () => `
+                    <div class="max-w-lg mx-auto bg-white p-8 rounded-3xl shadow-sm">
+                        <div class="flex justify-center gap-4 mb-8">
+                            <button onclick="setConvType('length')" class="flex-1 py-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-sm border border-indigo-100" id="btn-length">Length</button>
+                            <button onclick="setConvType('weight')" class="flex-1 py-2 rounded-xl bg-white text-gray-500 font-bold text-sm border border-gray-100" id="btn-weight">Weight</button>
+                            <button onclick="setConvType('temp')" class="flex-1 py-2 rounded-xl bg-white text-gray-500 font-bold text-sm border border-gray-100" id="btn-temp">Temp</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-[1fr,auto,1fr] gap-4 items-center mb-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">From</label>
+                                <input type="number" id="fromVal" value="1" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 focus:outline-none focus:border-indigo-500 mb-2" oninput="convert()">
+                                <select id="fromUnit" class="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600 focus:outline-none" onchange="convert()">
+                                    <!-- Options populated by JS -->
+                                </select>
+                            </div>
+                            <div class="text-gray-300 pt-6"><i data-lucide="arrow-right" size="24"></i></div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">To</label>
+                                <input type="number" id="toVal" readonly class="w-full bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 font-bold text-indigo-700 focus:outline-none mb-2">
+                                <select id="toUnit" class="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm text-gray-600 focus:outline-none" onchange="convert()">
+                                    <!-- Options populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        function launchTool(toolKey) {
+            const config = toolConfigs[toolKey];
+            if(!config) return;
+
+            toolTitle.innerText = config.title;
+            toolIconContainer.innerHTML = config.icon;
+            toolIconContainer.className = `w-8 h-8 rounded-lg flex items-center justify-center text-white ${config.bg}`;
+            
+            toolBody.innerHTML = config.render();
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+
+            // Init specific logic
+            if (toolKey === 'chat') {
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendMessage();
+                });
+            } else if (toolKey === 'pomodoro') {
+                resetTimer(); // Init timer state
+            } else if (toolKey === 'todo') {
+                document.getElementById('taskInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addTask();
+                });
+            } else if (toolKey === 'converter') {
+                setConvType('length'); // Init converter state
+            }
+        }
+
+        function closeTool() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            clearInterval(timerInterval); // Stop timer if running
+        }
+
+        // --- Grade Calc Logic ---
+        function getCourseRowHTML() {
+            return `
+                <div class="grid grid-cols-12 gap-2 course-row">
+                    <input type="text" placeholder="Subject Name" class="col-span-6 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                    <input type="number" placeholder="Credits" class="col-span-3 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none credit-input">
+                    <select class="col-span-3 bg-gray-50 border border-gray-100 rounded-lg px-2 py-2 text-sm focus:outline-none grade-input text-gray-600">
+                        <option value="10">O (10)</option>
+                        <option value="9">A+ (9)</option>
+                        <option value="8">A (8)</option>
+                        <option value="7">B+ (7)</option>
+                        <option value="6">B (6)</option>
+                        <option value="5">C (5)</option>
+                        <option value="0">F (0)</option>
+                    </select>
+                </div>
+            `;
+        }
+        function addCourseRow() {
+            const container = document.getElementById('courseRows');
+            const div = document.createElement('div');
+            div.innerHTML = getCourseRowHTML();
+            container.appendChild(div.firstElementChild);
+        }
+        function calculateSGPA() {
+            const rows = document.querySelectorAll('.course-row');
+            let totalCredits = 0;
+            let totalPoints = 0;
+
+            rows.forEach(row => {
+                const credit = parseFloat(row.querySelector('.credit-input').value) || 0;
+                const grade = parseFloat(row.querySelector('.grade-input').value) || 0;
+                
+                totalCredits += credit;
+                totalPoints += (credit * grade);
+            });
+
+            const sgpa = totalCredits === 0 ? 0 : (totalPoints / totalCredits).toFixed(2);
+            document.getElementById('sgpaResult').innerText = sgpa;
+        }
+
+        // --- Password Gen Logic ---
+        function generatePassword() {
+            const length = document.getElementById('passLength').value;
+            const incNum = document.getElementById('incNum').checked;
+            const incSym = document.getElementById('incSym').checked;
+            
+            let charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if (incNum) charset += "0123456789";
+            if (incSym) charset += "!@#$%^&*()_+";
+            
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            document.getElementById('passwordOutput').innerText = password;
+        }
+        function copyPassword() {
+            const pass = document.getElementById('passwordOutput').innerText;
+            navigator.clipboard.writeText(pass);
+            alert("Password Copied!");
+        }
+
+        // --- Chat Logic ---
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatBox = document.getElementById('chatBox');
+            
+            // User Msg
+            chatBox.innerHTML += `
+                <div class="flex gap-3 justify-end chat-msg">
+                    <div class="bg-brand-blue text-white p-3 rounded-2xl rounded-tr-none text-sm max-w-[80%]">
+                        ${msg}
+                    </div>
+                     <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs shrink-0">U</div>
+                </div>
+            `;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Bot Response Simulation
+            setTimeout(() => {
+                const responses = [
+                    "That's an interesting question regarding " + msg.split(' ')[0] + ".",
+                    "To solve this in Python, you might want to look into Lists or Dictionaries.",
+                    "In Java, Object Oriented principles are key here.",
+                    "Check out the 'Code' tab for specific examples on this!",
+                    "I am a demo bot, but I think you're on the right track."
+                ];
+                const reply = responses[Math.floor(Math.random() * responses.length)];
+
+                chatBox.innerHTML += `
+                    <div class="flex gap-3 chat-msg">
+                         <div class="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs shrink-0">AI</div>
+                         <div class="bg-white p-3 rounded-2xl rounded-tl-none text-sm text-gray-600 shadow-sm border border-gray-100 max-w-[80%]">
+                             ${reply}
+                         </div>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 800);
+        }
+
+        // --- Notes Logic ---
+        function printNotes() {
+            window.print();
+        }
+
+        // --- GPA Tracker Logic ---
+        let semesters = [];
+        function addSemester() {
+            const val = parseFloat(document.getElementById('semGpaInput').value);
+            if (!val || val > 10 || val < 0) return alert("Invalid GPA");
+            
+            semesters.push(val);
+            document.getElementById('semGpaInput').value = '';
+            updateGpaUI();
+        }
+        function updateGpaUI() {
+            const list = document.getElementById('semesterList');
+            list.innerHTML = '';
+            let sum = 0;
+            
+            semesters.forEach((gpa, i) => {
+                sum += gpa;
+                list.innerHTML += `
+                    <div class="flex-shrink-0 w-24 h-24 bg-white border border-gray-200 rounded-2xl flex flex-col items-center justify-center shadow-sm">
+                        <span class="text-xs text-gray-400 font-bold">SEM ${i+1}</span>
+                        <span class="text-xl font-bold text-gray-700">${gpa}</span>
+                    </div>
+                `;
+            });
+
+            const cgpa = semesters.length ? (sum / semesters.length).toFixed(2) : "0.0";
+            document.getElementById('cgpaDisplay').innerText = cgpa;
+        }
+
+        // --- Pomodoro Logic ---
+        let timerInterval;
+        let timeLeft = 25 * 60;
+        let totalTime = 25 * 60;
+        let isRunning = false;
+
+        function setTimerMode(mode) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('timerBtn').innerText = "Start";
+            
+            // UI Updates
+            ['work', 'short', 'long'].forEach(m => {
+                document.getElementById(`mode-${m}`).classList.remove('bg-red-50', 'text-red-600');
+                document.getElementById(`mode-${m}`).classList.add('bg-white', 'text-gray-500');
+            });
+            document.getElementById(`mode-${mode}`).classList.remove('bg-white', 'text-gray-500');
+            document.getElementById(`mode-${mode}`).classList.add('bg-red-50', 'text-red-600');
+
+            if(mode === 'work') timeLeft = 25 * 60;
+            else if(mode === 'short') timeLeft = 5 * 60;
+            else timeLeft = 15 * 60;
+            
+            totalTime = timeLeft;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                document.getElementById('timerBtn').innerText = "Start";
+            } else {
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("Time's up!");
+                    }
+                }, 1000);
+                document.getElementById('timerBtn').innerText = "Pause";
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('timerBtn').innerText = "Start";
+            // Default to work mode reset
+            if(totalTime === 1500) timeLeft = 1500;
+            else if(totalTime === 300) timeLeft = 300;
+            else timeLeft = 900;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+            
+            // Circle Progress
+            const circle = document.getElementById('timerCircle');
+            const dash = 754; // 2 * pi * r (r=120)
+            const offset = dash - (timeLeft / totalTime) * dash;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        // --- Task Manager Logic ---
+        let tasks = [];
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            tasks.push({ id: Date.now(), text: text, done: false });
+            input.value = '';
+            renderTasks();
+        }
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) task.done = !task.done;
+            renderTasks();
+        }
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-400 py-10">No tasks yet. Add one above!</div>';
+                return;
+            }
+            
+            list.innerHTML = tasks.map(t => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl group transition-all ${t.done ? 'opacity-60' : ''}">
+                    <button onclick="toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.done ? 'bg-teal-500 border-teal-500 text-white' : 'border-gray-300 hover:border-teal-500'} flex items-center justify-center transition-colors">
+                        ${t.done ? '<i data-lucide="check" size="14"></i>' : ''}
+                    </button>
+                    <span class="flex-1 text-sm font-medium ${t.done ? 'line-through text-gray-400' : 'text-gray-700'}">${t.text}</span>
+                    <button onclick="deleteTask(${t.id})" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="trash-2" size="18"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- Unit Converter Logic ---
+        const convRates = {
+            length: { m: 1, km: 0.001, cm: 100, ft: 3.28084, in: 39.3701 },
+            weight: { kg: 1, g: 1000, lb: 2.20462, oz: 35.274 },
+            temp: {} // Special handling
+        };
+        let currentConvType = 'length';
+
+        function setConvType(type) {
+            currentConvType = type;
+            ['length', 'weight', 'temp'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if(t === type) {
+                    btn.classList.add('bg-indigo-50', 'text-indigo-600', 'border-indigo-100');
+                    btn.classList.remove('bg-white', 'text-gray-500', 'border-gray-100');
+                } else {
+                    btn.classList.remove('bg-indigo-50', 'text-indigo-600', 'border-indigo-100');
+                    btn.classList.add('bg-white', 'text-gray-500', 'border-gray-100');
+                }
+            });
+            
+            const fromSel = document.getElementById('fromUnit');
+            const toSel = document.getElementById('toUnit');
+            fromSel.innerHTML = '';
+            toSel.innerHTML = '';
+            
+            const units = type === 'length' ? ['m', 'km', 'cm', 'ft', 'in'] :
+                          type === 'weight' ? ['kg', 'g', 'lb', 'oz'] :
+                          ['C', 'F', 'K'];
+            
+            units.forEach(u => {
+                fromSel.add(new Option(u, u));
+                toSel.add(new Option(u, u));
+            });
+            
+            // Set defaults
+            if(type === 'length') { toSel.value = 'ft'; }
+            if(type === 'weight') { toSel.value = 'lb'; }
+            if(type === 'temp') { toSel.value = 'F'; }
+            
+            convert();
+        }
+
+        function convert() {
+            const val = parseFloat(document.getElementById('fromVal').value) || 0;
+            const from = document.getElementById('fromUnit').value;
+            const to = document.getElementById('toUnit').value;
+            let result = 0;
+
+            if (currentConvType === 'temp') {
+                if (from === to) result = val;
+                else if (from === 'C' && to === 'F') result = (val * 9/5) + 32;
+                else if (from === 'C' && to === 'K') result = val + 273.15;
+                else if (from === 'F' && to === 'C') result = (val - 32) * 5/9;
+                else if (from === 'F' && to === 'K') result = (val - 32) * 5/9 + 273.15;
+                else if (from === 'K' && to === 'C') result = val - 273.15;
+                else if (from === 'K' && to === 'F') result = (val - 273.15) * 9/5 + 32;
+            } else {
+                const base = val / convRates[currentConvType][from];
+                result = base * convRates[currentConvType][to];
+            }
+            
+            document.getElementById('toVal').value = Number.isInteger(result) ? result : result.toFixed(4);
+        }
+
+    </script>
+</body>
+</html>

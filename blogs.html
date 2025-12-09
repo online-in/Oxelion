@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogs - Oxelion</title>
+    
+    <!-- Fonts: Poppins (Geometric Sans) and Allura (Script) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Tailwind -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        script: ['Allura', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            dark: '#0B1120',
+                            light: '#F5F7FA',
+                            gray: '#64748B',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(0, 102, 255, 0.2)',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FC; color: #0B1120; }
+        .script-text { font-family: 'Allura', cursive; line-height: 1; }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.1); }
+        .bg-blob {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* Loader Styles (Synced with Index) */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        .loader-content { text-align: center; animation: fadeIn 0.5s ease-out; }
+        .loader-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0066FF 0%, #3B82F6 100%);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 102, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+    </style>
+</head>
+<body class="font-body text-brand-dark antialiased overflow-x-hidden relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-icon">
+                <i data-lucide="graduation-cap" width="36" height="36"></i>
+            </div>
+            <h2 class="font-sans font-bold text-2xl tracking-tight text-brand-dark">OXELION</h2>
+            <p class="text-[10px] text-brand-blue uppercase font-bold tracking-[0.3em] mt-3">Academic Hub</p>
+        </div>
+    </div>
+
+    <!-- BLOG READING MODAL -->
+    <div id="blogModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeBlog()"></div>
+        <div class="absolute inset-0 md:inset-10 bg-white md:rounded-[30px] shadow-2xl overflow-y-auto flex flex-col animate-[scaleIn_0.3s_ease-out]">
+            <!-- Close Button -->
+            <button onclick="closeBlog()" class="fixed top-6 right-6 md:top-14 md:right-14 z-50 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors shadow-lg">
+                <i data-lucide="x" size="24"></i>
+            </button>
+
+            <!-- Hero Image -->
+            <div class="h-64 md:h-80 w-full relative shrink-0">
+                <img id="modalImage" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white max-w-4xl">
+                    <span id="modalCategory" class="px-3 py-1 bg-brand-blue text-xs font-bold rounded-lg mb-4 inline-block">Category</span>
+                    <h1 id="modalTitle" class="text-3xl md:text-5xl font-sans font-bold leading-tight mb-2">Blog Title</h1>
+                    <p id="modalMeta" class="text-gray-300 text-sm font-medium">5 min read • By Oxelion Team</p>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="max-w-3xl mx-auto p-8 md:p-12 text-lg leading-relaxed text-gray-600 space-y-6" id="modalContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-blob -top-20 -left-20"></div>
+    <div class="bg-blob top-40 right-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group select-none">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-tr from-brand-blue to-blue-400 rounded-xl text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="graduation-cap" size="20"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-sans font-bold text-xl tracking-tight leading-none text-brand-dark group-hover:text-brand-blue transition-colors">Oxelion</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Academic Hub</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden xl:flex items-center gap-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Home</a>
+                <a href="code.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Code</a>
+                <a href="resources.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Resources</a>
+                <a href="tools.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Tools</a>
+                <a href="ml.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">ML Center</a>
+                <a href="blogs.html" class="text-xs font-bold uppercase tracking-wide text-brand-blue transition-colors">Blogs</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="contact.html" class="px-5 py-2 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-brand-dark/20">
+                    Contact Us
+                </a>
+                <button class="xl:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-28 min-h-screen">
+        <div class="container mx-auto px-6 py-12">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-16 max-w-2xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
+                    <span class="w-2 h-2 rounded-full bg-brand-blue"></span>
+                    Insights
+                </div>
+                <h1 class="font-sans text-5xl font-medium mb-4">Latest <span class="text-brand-blue script-text text-6xl">Blogs</span></h1>
+                <p class="text-gray-500 text-lg">
+                    Thoughts on coding, interview preparation, and effective study techniques for students.
+                </p>
+            </div>
+
+            <!-- Dynamic Blog List -->
+            <div id="blogContainer" class="space-y-8 max-w-4xl mx-auto min-h-[600px]">
+                <!-- Blog Cards injected here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center mt-12 gap-2" id="paginationControls">
+                <!-- Pagination buttons injected here -->
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Updated Footer (Matches Index) -->
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-bold">
+                            <i data-lucide="graduation-cap" size="20"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight">OXELION</span>
+                    </div>
+                    <p class="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Empowering students with open-source academic resources. Built by students, for students.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="resources.html" class="hover:text-brand-blue transition-colors">Resources Library</a></li>
+                        <li><a href="code.html" class="hover:text-brand-blue transition-colors">Code Solutions</a></li>
+                        <li><a href="ml.html" class="hover:text-brand-blue transition-colors">ML Playground</a></li>
+                        <li><a href="tools.html" class="hover:text-brand-blue transition-colors">Student Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a></li>
+                        <li><a href="contact.html" class="hover:text-brand-blue transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    © 2024 Oxelion. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="https://github.com/online-in" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="github" size="20"></i></a>
+                    <a href="https://x.com/bhara12549" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="twitter" size="20"></i></a>
+                    <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333/" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="linkedin" size="20"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Data Source: 20 Blogs ---
+        const blogs = [
+            {
+                id: 1,
+                title: "How to Ace Campus Placements",
+                category: "Placement",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80",
+                badge: "MUST READ",
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">The Placement Game</h3>
+                    <p>Campus placements can be one of the most stressful phases of a student's life. However, with a systematic approach, it becomes a predictable game of skill and preparation. The first gatekeeper is almost always <strong>Aptitude</strong>. Companies use this to filter out the thousands of applicants. Platforms like IndiaBix and simple daily practice on quantitative aptitude can get you through.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Technical Proficiency</h3>
+                    <p>Once you pass the aptitude test, the technical rounds begin. You don't need to know five languages; you need to master one. Whether it's C++, Java, or Python, ensure you understand the depth of it—memory management, standard libraries, and Object-Oriented Programming (OOP) concepts. Data Structures and Algorithms (DSA) are non-negotiable for product-based companies.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">The HR Round</h3>
+                    <p>Finally, the HR round is not just a formality. It's a personality check. Be honest, be confident, and most importantly, know your resume inside out. If you mentioned a project, be ready to explain every line of code in it.</p>
+                `
+            },
+            {
+                id: 2,
+                title: "The Ultimate DSA Roadmap",
+                category: "Algorithms",
+                readTime: "8 min read",
+                image: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Month 1: The Basics</h3>
+                    <p>Start with the building blocks. Focus on Arrays, Strings, and Linked Lists. Understand how memory is allocated and how pointers work. Don't jump to coding immediately; solve problems on paper. Understand Time and Space Complexity (Big O notation) deeply, as this will be the basis for judging your solutions later.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Month 2: Linear Data Structures</h3>
+                    <p>Move on to Stacks, Queues, and Hash Maps. These are utility structures used to solve more complex problems. Learn Recursion—it's tricky but essential for Trees and Graphs. Basic Tree traversals (Inorder, Preorder, Postorder) should become muscle memory.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Month 3: Advanced Concepts</h3>
+                    <p>This is where the magic happens. Graphs (BFS, DFS), Dynamic Programming (DP), and Tries. These topics separate the average coders from the great ones. Consistency is key here. Solving 2 problems daily on LeetCode or GeeksForGeeks is far better than solving 20 problems once a week.</p>
+                `
+            },
+            {
+                id: 3,
+                title: "Make Your Notes: Fast & Effective",
+                category: "Productivity",
+                readTime: "3 min read",
+                image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">The Cornell Method</h3>
+                    <p>Stop simply copying the textbook. That is passive learning and has low retention. Use the <strong>Cornell Method</strong>: Divide your page into three sections—Cues, Notes, and Summary. Write main points in the Notes area, keywords in the Cues area, and a 2-line summary at the bottom.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Digital vs. Analog</h3>
+                    <p>While writing by hand improves memory retention, digital notes are searchable. Tools like <strong>Obsidian</strong> or <strong>Notion</strong> allow you to link concepts together, creating a "second brain". Use active recall—test yourself on your notes rather than just re-reading them.</p>
+                `
+            },
+            {
+                id: 4,
+                title: "Resume Hacks for Freshers",
+                category: "Career",
+                readTime: "4 min read",
+                image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80",
+                badge: "HOT",
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">One Page Rule</h3>
+                    <p>Recruiters spend about 6 seconds scanning a resume. If it's longer than one page, the best parts might get missed. Keep it concise. Remove your high school grades if you are in your final year of college.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">The XYZ Formula</h3>
+                    <p>Google recommends this formula for bullet points: <strong>"Achieved [X] as measured by [Y], by doing [Z]"</strong>. Instead of saying "Wrote code for a website," say "Reduced page load time by 20% by optimizing image assets and minifying CSS scripts." Quantifiable metrics win interviews.</p>
+                `
+            },
+            {
+                id: 5,
+                title: "Web Dev: React vs Angular",
+                category: "Technology",
+                readTime: "6 min read",
+                image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">React: The Flexible Library</h3>
+                    <p>React is technically a library, not a framework. It focuses on the View layer. It gives you freedom to choose your router, your state management, and your styling tools. This flexibility makes it popular for startups and projects that need to iterate fast. It uses a Virtual DOM which ensures high performance.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Angular: The Complete Framework</h3>
+                    <p>Angular is a beast. It's a full-fledged framework by Google that comes with everything out of the box—routing, HTTP client, forms validation, etc. It uses TypeScript by default. It's often preferred by large enterprises because it enforces a strict structure, making code maintainable across large teams.</p>
+                `
+            },
+            {
+                id: 6,
+                title: "Mastering Python in 30 Days",
+                category: "Coding",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Week 1 & 2: The Core</h3>
+                    <p>Spend the first week on syntax, variables, loops, and functions. Python reads like English, so this is quick. Week 2 should be dedicated to Data Structures (Lists, Dictionaries, Sets) and File Handling. Learn how to manipulate text files and CSVs.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Week 3 & 4: Application</h3>
+                    <p>Don't just learn syntax; use libraries. Week 3 is for <strong>NumPy</strong> and <strong>Pandas</strong> if you like data, or <strong>Flask</strong>/<strong>Django</strong> if you like web dev. Week 4 must be a project. Build a weather app that fetches data from an API, or a simple To-Do list CLI tool. You learn more in one project than 10 tutorials.</p>
+                `
+            },
+            {
+                id: 7,
+                title: "System Design for Beginners",
+                category: "Architecture",
+                readTime: "7 min read",
+                image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">The Basics</h3>
+                    <p>System Design is about scaling. Start with the Client-Server model. Understand DNS resolution and HTTP protocols. Learn the difference between vertical scaling (buying a bigger server) vs horizontal scaling (buying more servers).</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Database & Caching</h3>
+                    <p>Understand when to use SQL (structured data, ACID properties) vs NoSQL (unstructured data, easy scaling). Learn about Caching (Redis)—it's the secret sauce to high performance. A well-placed cache can save your database from crashing under load.</p>
+                `
+            },
+            {
+                id: 8,
+                title: "The Future of AI in Jobs",
+                category: "Trends",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80",
+                badge: "TRENDING",
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Co-pilot, Not Replacement</h3>
+                    <p>The fear that "AI will take our jobs" is partially misplaced. AI won't replace you; a person using AI effectively will replace you. Tools like GitHub Copilot and ChatGPT are force multipliers. They handle the boring boilerplate code, leaving you to solve the complex architectural problems.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">New Skills Required</h3>
+                    <p>Prompt engineering is the new soft skill. Understanding how LLMs (Large Language Models) work, their limitations, and how to integrate them into applications via APIs is becoming a standard requirement for developers.</p>
+                `
+            },
+            {
+                id: 9,
+                title: "Managing Exam Stress",
+                category: "Health",
+                readTime: "4 min read",
+                image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Sleep & Memory</h3>
+                    <p>Pulling an all-nighter is actually counter-productive. Sleep is when your brain consolidates memory—moving information from short-term to long-term storage. If you don't sleep, you essentially delete what you studied.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">The Pomodoro Technique</h3>
+                    <p>Study in bursts. 25 minutes of intense focus followed by a 5-minute break. This keeps your brain fresh. Also, stay hydrated. Dehydration leads to a significant drop in cognitive function and concentration.</p>
+                `
+            },
+            {
+                id: 10,
+                title: "Open Source Contributions",
+                category: "Open Source",
+                readTime: "6 min read",
+                image: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Start Small</h3>
+                    <p>You don't need to rewrite the Linux kernel. Start with documentation. Many open-source projects have outdated READMEs. Fixing typos or clarifying installation steps is a valid contribution.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Good First Issue</h3>
+                    <p>Go to GitHub and search for the label "good first issue". Maintainers put this tag on bugs that are easy for beginners to fix. Read the contribution guidelines (CONTRIBUTING.md) carefully before making a Pull Request.</p>
+                `
+            },
+            {
+                id: 11,
+                title: "Soft Skills for Engineers",
+                category: "Skills",
+                readTime: "4 min read",
+                image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Code is for Humans</h3>
+                    <p>Computers can read binary; code is written for other humans to read. Writing clean, commented code is a soft skill. Communication is vital. You need to be able to explain complex technical concepts to non-technical stakeholders (like Product Managers).</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Empathy</h3>
+                    <p>Empathy makes you a better developer. Understanding user pain points helps you build better products. Understanding your teammates' struggles helps you become a better leader.</p>
+                `
+            },
+            {
+                id: 12,
+                title: "Internship Guide 2024",
+                category: "Career",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Apply Early</h3>
+                    <p>Don't wait until you feel "ready". You will never feel 100% ready. Apply early. Many companies close their internship portals months before the start date.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Cold Emailing</h3>
+                    <p>Applying via portals has a low success rate. Find recruiters or engineering managers on LinkedIn. Send a personalized connection request. Briefly explain who you are and share a link to your portfolio or GitHub. It shows initiative.</p>
+                `
+            },
+            {
+                id: 13,
+                title: "Git Basics for Students",
+                category: "Tools",
+                readTime: "6 min read",
+                image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?auto=format&fit=crop&q=80",
+                badge: "ESSENTIAL",
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Version Control is a Safety Net</h3>
+                    <p>Git allows you to save "checkpoints" of your code. If you break something, you can simply revert to a previous version. Learn the basic commands: <code>git init</code>, <code>git add</code>, <code>git commit</code>, and <code>git push</code>.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Branching Strategy</h3>
+                    <p>Never code directly on the 'main' branch in a team setting. Create a new branch for every feature: <code>git checkout -b feature-login</code>. Once your code is ready, create a Pull Request (PR) to merge it back. This workflow is industry standard.</p>
+                `
+            },
+            {
+                id: 14,
+                title: "Understanding Big O Notation",
+                category: "Algorithms",
+                readTime: "7 min read",
+                image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Scalability Measure</h3>
+                    <p>Big O notation doesn't measure seconds; it measures how the number of operations grows as the input size (n) grows. O(1) is constant time (best). O(n) is linear. O(n^2) is quadratic (usually bad, like nested loops).</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Common Complexities</h3>
+                    <p>Binary Search is <strong>O(log n)</strong> because it cuts the problem in half every step. Merge Sort is <strong>O(n log n)</strong>. Understanding these helps you write efficient code that doesn't crash when user data scales from 100 to 1 million users.</p>
+                `
+            },
+            {
+                id: 15,
+                title: "Cybersecurity 101 for Devs",
+                category: "Security",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Never Trust User Input</h3>
+                    <p>The golden rule of web security. Always sanitize inputs to prevent <strong>SQL Injection</strong> and <strong>XSS (Cross-Site Scripting)</strong> attacks. Use parameterized queries for databases and escape characters for HTML output.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">HTTPS and Hashing</h3>
+                    <p>Never store passwords in plain text. Always hash them (and salt them) using algorithms like bcrypt. Ensure your site uses HTTPS to encrypt data in transit between the client and the server.</p>
+                `
+            },
+            {
+                id: 16,
+                title: "SQL vs NoSQL Databases",
+                category: "Database",
+                readTime: "6 min read",
+                image: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Structured vs Flexible</h3>
+                    <p><strong>SQL</strong> (MySQL, PostgreSQL) databases are table-based and enforce a strict schema. They are best for complex queries and transactional systems (like banking) where data integrity (ACID) is crucial.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Scaling Needs</h3>
+                    <p><strong>NoSQL</strong> (MongoDB, Cassandra) databases are document or key-value based. They are flexible and easy to scale horizontally (adding more servers). They are great for real-time big data applications and content management systems.</p>
+                `
+            },
+            {
+                id: 17,
+                title: "Docker: Why Containerize?",
+                category: "DevOps",
+                readTime: "5 min read",
+                image: "https://images.unsplash.com/photo-1605745341112-85968b19335b?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">"It Works on My Machine"</h3>
+                    <p>We've all heard this. Docker solves this by packaging the application with all its dependencies (libraries, runtime, OS settings) into a container. If it runs in a Docker container on your laptop, it will run on the server.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Isolation</h3>
+                    <p>Containers are lightweight compared to Virtual Machines. You can run multiple containers (Database, Backend, Frontend) on a single machine without them interfering with each other's dependencies.</p>
+                `
+            },
+            {
+                id: 18,
+                title: "API Basics: REST vs GraphQL",
+                category: "Web Dev",
+                readTime: "6 min read",
+                image: "https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">REST: The Standard</h3>
+                    <p>REST uses standard HTTP methods (GET, POST, PUT, DELETE). It's robust and easy to cache. However, it suffers from over-fetching (getting more data than needed) or under-fetching (needing multiple requests).</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">GraphQL: The Query Language</h3>
+                    <p>GraphQL allows the client to ask for exactly what it needs. "Give me the user's name but not their address". It solves the over-fetching problem but adds complexity to the backend and caching strategy.</p>
+                `
+            },
+            {
+                id: 19,
+                title: "Effective Time Management",
+                category: "Productivity",
+                readTime: "4 min read",
+                image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80",
+                badge: null,
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Time Blocking</h3>
+                    <p>Instead of a to-do list, use Time Blocking. Assign specific hours of the day to specific tasks. "10 AM to 12 PM: Study Graphs". This creates a commitment and reduces procrastination.</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Eat the Frog</h3>
+                    <p>Mark Twain said, "If it's your job to eat a frog, it's best to do it first thing in the morning." Do your hardest, most dreaded task first. Once it's done, the rest of the day feels easy and productive.</p>
+                `
+            },
+            {
+                id: 20,
+                title: "Cloud Computing Basics (AWS)",
+                category: "Cloud",
+                readTime: "7 min read",
+                image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80",
+                badge: "HOT",
+                content: `
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4">Someone Else's Computer</h3>
+                    <p>Cloud computing is just renting servers and storage over the internet. AWS is the market leader. Start by learning <strong>EC2</strong> (Virtual Servers) and <strong>S3</strong> (Storage for files/images).</p>
+                    
+                    <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Pay as You Go</h3>
+                    <p>The biggest advantage is cost and scalability. You don't need to buy expensive hardware. You spin up a server when you need it, and shut it down when you don't. This elasticity is what powers modern startups like Netflix and Airbnb.</p>
+                `
+            }
+        ];
+
+        // --- State ---
+        let currentPage = 1;
+        const itemsPerPage = 6; // Increased from 4 to 6 for better grid layout
+        const totalPages = Math.ceil(blogs.length / itemsPerPage);
+
+        // --- Pagination Logic ---
+        function renderBlogs() {
+            const container = document.getElementById('blogContainer');
+            container.innerHTML = '';
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentBlogs = blogs.slice(start, end);
+
+            currentBlogs.forEach((blog, index) => {
+                // Animation delay logic
+                const delay = index * 100;
+                
+                const card = document.createElement('article');
+                card.className = `bg-white p-6 rounded-[30px] border border-gray-100 flex flex-col md:flex-row gap-8 hover-card group cursor-pointer animate-fade-in`;
+                card.style.animationDelay = `${delay}ms`;
+                card.onclick = () => openBlog(blog.id);
+
+                card.innerHTML = `
+                    <div class="w-full md:w-64 h-48 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 relative">
+                         <img src="${blog.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                         ${blog.badge ? `<div class="absolute top-4 left-4 bg-brand-dark text-white text-[10px] font-bold px-3 py-1 rounded-full">${blog.badge}</div>` : ''}
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-xs font-bold text-brand-blue uppercase tracking-wide">${blog.category}</span>
+                            <span class="text-gray-300">•</span>
+                            <span class="text-xs text-gray-400 font-medium">${blog.readTime}</span>
+                        </div>
+                        <h3 class="font-sans text-2xl font-bold mb-3 group-hover:text-brand-blue transition-colors">${blog.title}</h3>
+                        <div class="text-gray-500 text-sm leading-relaxed mb-6 line-clamp-2">${blog.content.replace(/<[^>]*>?/gm, '').substring(0, 180)}...</div>
+                        <div class="flex items-center text-brand-dark font-bold text-sm mt-auto">
+                            Read Article <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            lucide.createIcons();
+            renderPagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderPagination() {
+            const controls = document.getElementById('paginationControls');
+            controls.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                const isActive = i === currentPage;
+                
+                btn.className = `w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
+                    isActive 
+                    ? 'bg-brand-dark text-white shadow-lg' 
+                    : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`;
+                btn.innerText = i;
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderBlogs();
+                };
+                controls.appendChild(btn);
+            }
+        }
+
+        // --- Modal Logic ---
+        function openBlog(id) {
+            const blog = blogs.find(b => b.id === id);
+            if(!blog) return;
+
+            document.getElementById('modalImage').src = blog.image;
+            document.getElementById('modalCategory').innerText = blog.category;
+            document.getElementById('modalTitle').innerText = blog.title;
+            document.getElementById('modalMeta').innerText = `${blog.readTime} • By Oxelion Team`;
+            document.getElementById('modalContent').innerHTML = blog.content;
+
+            const modal = document.getElementById('blogModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBlog() {
+            const modal = document.getElementById('blogModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- Initialization ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 2500);
+            
+            renderBlogs();
+        });
+
+    </script>
+</body>
+</html>

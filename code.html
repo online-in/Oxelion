@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Library - Oxelion</title>
+    
+    <!-- Fonts: Poppins (Geometric Sans) and Allura (Script) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Manrope:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Tailwind -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        body: ['Manrope', 'sans-serif'],
+                        script: ['Allura', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0066FF',
+                            dark: '#0B1120',
+                            light: '#F5F7FA',
+                            gray: '#64748B',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(0, 102, 255, 0.2)',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FC; color: #0B1120; }
+        .script-text { font-family: 'Allura', cursive; line-height: 1; }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0, 102, 255, 0.15); }
+        .bg-blob {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,102,255,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* Custom Scrollbar for Code Block */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        
+        .loader-content { text-align: center; animation: fadeIn 0.5s ease-out; }
+        .loader-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0066FF 0%, #3B82F6 100%);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(0, 102, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+    </style>
+</head>
+<body class="font-body text-brand-dark antialiased overflow-x-hidden relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-icon">
+                <i data-lucide="graduation-cap" width="36" height="36"></i>
+            </div>
+            <h2 class="font-sans font-bold text-2xl tracking-tight text-brand-dark">OXELION</h2>
+            <p class="text-[10px] text-brand-blue uppercase font-bold tracking-[0.3em] mt-3">Academic Hub</p>
+        </div>
+    </div>
+
+    <!-- CODE VIEWER MODAL (Hidden by default) -->
+    <div id="codeModal" class="fixed inset-0 z-[100] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-4 md:inset-10 bg-white rounded-[30px] shadow-2xl overflow-hidden flex flex-col md:flex-row animate-[scaleIn_0.3s_ease-out]">
+            
+            <!-- Sidebar -->
+            <div class="w-full md:w-72 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+                <div class="p-6 border-b border-gray-200 bg-white">
+                    <div class="flex items-center gap-3">
+                        <div id="modalIcon" class="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm"></div>
+                        <div>
+                            <h3 id="modalTitle" class="font-bold text-lg leading-tight">Language</h3>
+                            <p class="text-xs text-gray-500 font-medium">Select a snippet</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Snippet List -->
+                <div id="snippetList" class="flex-1 overflow-y-auto p-4 space-y-2">
+                    <!-- Javascript will populate this -->
+                </div>
+                <!-- Mobile Close Button (Visible only on small screens) -->
+                <div class="p-4 md:hidden border-t border-gray-200">
+                    <button onclick="closeModal()" class="w-full py-3 bg-gray-200 rounded-xl font-bold text-gray-700">Close Viewer</button>
+                </div>
+            </div>
+
+            <!-- Main Code Area -->
+            <div class="flex-1 flex flex-col h-full bg-[#2d2d2d] text-white relative">
+                
+                <!-- Toolbar -->
+                <div class="h-16 border-b border-gray-700 flex items-center justify-between px-6 bg-[#252526]">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="file-code" class="text-gray-400" size="18"></i>
+                        <span id="currentFile" class="text-sm font-mono text-gray-300">main.py</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a id="runButton" href="#" target="_blank" class="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors">
+                            <i data-lucide="play" size="14"></i> Run
+                        </a>
+                        <button onclick="copyCode()" class="flex items-center gap-2 px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs font-bold transition-colors group">
+                            <i data-lucide="copy" size="14"></i> <span id="copyText">Copy</span>
+                        </button>
+                        <button onclick="closeModal()" class="hidden md:flex items-center justify-center w-8 h-8 hover:bg-red-500/20 hover:text-red-500 rounded-lg transition-colors ml-2">
+                            <i data-lucide="x" size="20"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Code Editor View -->
+                <div class="flex-1 overflow-auto relative font-mono text-sm">
+                    <pre class="m-0 p-6 min-h-full"><code id="codeDisplay" class="language-python"># Select a snippet to view code...</code></pre>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-blob -top-20 -left-20"></div>
+    <div class="bg-blob top-40 right-0"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo (Redesigned) -->
+            <a href="index.html" class="flex items-center gap-3 group select-none">
+                <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-tr from-brand-blue to-blue-400 rounded-xl text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="graduation-cap" size="20"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-sans font-bold text-xl tracking-tight leading-none text-brand-dark group-hover:text-brand-blue transition-colors">Oxelion</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Academic Hub</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden xl:flex items-center gap-8">
+                <a href="index.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Home</a>
+                <a href="code.html" class="text-xs font-bold uppercase tracking-wide text-brand-blue transition-colors">Code</a>
+                <a href="resources.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Resources</a>
+                <a href="tools.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Tools</a>
+                <a href="ml.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">ML Center</a>
+                <a href="blogs.html" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-brand-blue transition-colors">Blogs</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="contact.html" class="px-5 py-2 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-brand-dark/20">
+                    Contact Us
+                </a>
+                <button class="xl:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-28 min-h-screen">
+        <div class="container mx-auto px-6 py-12">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-16 max-w-2xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
+                    <span class="w-2 h-2 rounded-full bg-brand-blue"></span>
+                    Library
+                </div>
+                <h1 class="font-sans text-5xl font-medium mb-4">Code <span class="text-brand-blue script-text text-6xl">Solutions</span></h1>
+                <p class="text-gray-500 text-lg">
+                    A curated repository of solved problems, algorithms, and project snippets. Select a language to get started.
+                </p>
+            </div>
+
+            <!-- Language Grid -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                
+                <!-- Python -->
+                <div onclick="openModal('python')" class="group bg-white p-8 rounded-[30px] shadow-sm border border-gray-100 hover-card relative overflow-hidden block cursor-pointer">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-yellow-50 rounded-full opacity-50 group-hover:scale-150 transition-transform"></div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl mb-6 relative">🐍</div>
+                    <h3 class="font-sans text-2xl font-bold mb-2 relative">Python</h3>
+                    <p class="text-gray-500 mb-6 relative text-sm">Scripts, Automation & Basic Programs. Beginner friendly syntax.</p>
+                    <div class="flex items-center text-brand-blue font-bold text-sm relative">
+                        View Snippets <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- Java -->
+                <div onclick="openModal('java')" class="group bg-white p-8 rounded-[30px] shadow-sm border border-gray-100 hover-card relative overflow-hidden block cursor-pointer">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-50 rounded-full opacity-50 group-hover:scale-150 transition-transform"></div>
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-2xl mb-6 relative">☕</div>
+                    <h3 class="font-sans text-2xl font-bold mb-2 relative">Java</h3>
+                    <p class="text-gray-500 mb-6 relative text-sm">Object Oriented Programming (OOP) concepts and enterprise patterns.</p>
+                    <div class="flex items-center text-brand-blue font-bold text-sm relative">
+                        View Snippets <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- C Language -->
+                <div onclick="openModal('c')" class="group bg-white p-8 rounded-[30px] shadow-sm border border-gray-100 hover-card relative overflow-hidden block cursor-pointer">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform"></div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl mb-6 relative">🇨</div>
+                    <h3 class="font-sans text-2xl font-bold mb-2 relative">C Language</h3>
+                    <p class="text-gray-500 mb-6 relative text-sm">System level programming, Pointers, Structures and Memory management.</p>
+                    <div class="flex items-center text-brand-blue font-bold text-sm relative">
+                        View Snippets <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- JavaScript -->
+                <div onclick="openModal('javascript')" class="group bg-white p-8 rounded-[30px] shadow-sm border border-gray-100 hover-card relative overflow-hidden block cursor-pointer">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-yellow-100 rounded-full opacity-50 group-hover:scale-150 transition-transform"></div>
+                    <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-2xl mb-6 relative">🟨</div>
+                    <h3 class="font-sans text-2xl font-bold mb-2 relative">JavaScript</h3>
+                    <p class="text-gray-500 mb-6 relative text-sm">DOM Manipulation, ES6+ features, and Asynchronous logic.</p>
+                    <div class="flex items-center text-brand-blue font-bold text-sm relative">
+                        View Snippets <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+
+                <!-- DSA Problem Sets (Featured) -->
+                <div onclick="openModal('dsa')" class="md:col-span-2 group bg-brand-dark p-8 rounded-[30px] shadow-sm border border-gray-800 hover-card relative overflow-hidden text-white block cursor-pointer">
+                    <div class="absolute -right-4 -top-4 w-64 h-64 bg-brand-blue rounded-full opacity-20 group-hover:scale-150 transition-transform blur-3xl"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 h-full">
+                        <div>
+                            <div class="inline-block px-3 py-1 bg-brand-blue/20 rounded-lg text-brand-blue text-xs font-bold mb-3 border border-brand-blue/30">RECOMMENDED</div>
+                            <h3 class="font-sans text-3xl font-bold mb-2">DSA Problem Sets</h3>
+                            <p class="text-gray-400 max-w-md text-sm leading-relaxed">
+                                Master Data Structures and Algorithms with our curated collection of LeetCode & HackerRank solutions.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-brand-blue w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-glow">
+                            <i data-lucide="code-2" class="text-white" size="32"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats / Info Section -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-t border-gray-200/50">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-brand-blue font-sans">100+</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mt-1">Solutions</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-brand-blue font-sans">5</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mt-1">Languages</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-brand-blue font-sans">100%</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mt-1">Verified</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-brand-blue font-sans">Free</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mt-1">Open Source</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-bold">
+                            <i data-lucide="graduation-cap" size="20"></i>
+                        </div>
+                        <span class="font-bold text-xl tracking-tight">OXELION</span>
+                    </div>
+                    <p class="text-gray-500 text-sm leading-relaxed max-w-sm">
+                        Empowering students with open-source academic resources. Built by students, for students.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="resources.html" class="hover:text-brand-blue transition-colors">Resources Library</a></li>
+                        <li><a href="code.html" class="hover:text-brand-blue transition-colors">Code Solutions</a></li>
+                        <li><a href="ml.html" class="hover:text-brand-blue transition-colors">ML Playground</a></li>
+                        <li><a href="tools.html" class="hover:text-brand-blue transition-colors">Student Tools</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-brand-blue transition-colors">Terms of Service</a></li>
+                        <li><a href="contact.html" class="hover:text-brand-blue transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    © 2024 Oxelion. All rights reserved.
+                </div>
+                <div class="flex gap-6">
+                    <a href="https://github.com/online-in" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="github" size="20"></i></a>
+                    <a href="https://x.com/bhara12549" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="twitter" size="20"></i></a>
+                    <a href="https://www.linkedin.com/in/bharath-kumar-gorle-78ba53333/" class="text-gray-400 hover:text-brand-blue transition-colors"><i data-lucide="linkedin" size="20"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // --- Data Library ---
+        const codeLibrary = {
+            python: {
+                title: 'Python',
+                icon: '🐍',
+                color: 'bg-yellow-100 text-yellow-800',
+                compiler: 'https://www.programiz.com/python-programming/online-compiler/',
+                snippets: [
+                { name: '01. Hello World (Formatted Output)', file: 'hello.py', code: `name = "Oxelion"
+                version = 1.0
+                print("=" * 40)
+                print(f"Welcome to {name} Platform")
+                print(f"Version : {version}")
+                print("Python is Simple, Powerful and Popular")
+                print("=" * 40)` },
+
+                { name: '02. Variables & Data Types (Detailed)', file: 'variables.py', code: `x = 10
+                y = 5.5
+                name = "Python"
+                is_active = True
+
+                print("Integer:", x, type(x))
+                print("Float:", y, type(y))
+                print("String:", name, type(name))
+                print("Boolean:", is_active, type(is_active))` },
+
+                { name: '03. User Input System (Multiple Values)', file: 'input.py', code: `name = input("Enter your name: ")
+                age = int(input("Enter age: "))
+                course = input("Enter course: ")
+
+                print("\\n--- Student Details ---")
+                print("Name :", name)
+                print("Age  :", age)
+                print("Course:", course)` },
+
+                { name: '04. Full Calculator (All Operations)', file: 'calculator.py', code: `def calculator():
+                    a = float(input("Enter first number: "))
+                    b = float(input("Enter second number: "))
+
+                    print("1.Add  2.Sub  3.Mul  4.Div  5.Mod")
+                    ch = int(input("Choice: "))
+
+                    if ch == 1: print(a + b)
+                    elif ch == 2: print(a - b)
+                    elif ch == 3: print(a * b)
+                    elif ch == 4:
+                        if b != 0: print(a / b)
+                        else: print("Division by zero error")
+                    elif ch == 5: print(a % b)
+                    else: print("Invalid choice")
+
+                calculator()` },
+
+                { name: '05. Grade System with Validation', file: 'grades.py', code: `marks = int(input("Enter marks (0-100): "))
+
+                if marks < 0 or marks > 100:
+                    print("Invalid marks")
+                elif marks >= 90:
+                    print("Grade A")
+                elif marks >= 75:
+                    print("Grade B")
+                elif marks >= 60:
+                    print("Grade C")
+                elif marks >= 40:
+                    print("Grade D")
+                else:
+                    print("Fail")` },
+
+                { name: '06. Number Guessing Game', file: 'guess.py', code: `import random
+
+                secret = random.randint(1, 50)
+                attempts = 0
+
+                while True:
+                    guess = int(input("Guess a number (1-50): "))
+                    attempts += 1
+
+                    if guess == secret:
+                        print("Correct in", attempts, "attempts")
+                        break
+                    elif guess > secret:
+                        print("Too High")
+                    else:
+                        print("Too Low")` },
+
+                { name: '07. Prime Numbers Between Range', file: 'prime_range.py', code: `start = int(input("Start: "))
+                end = int(input("End: "))
+
+                for num in range(start, end+1):
+                    if num > 1:
+                        for i in range(2, num):
+                            if num % i == 0:
+                                break
+                        else:
+                            print(num, end=" ")` },
+
+                { name: '08. Fibonacci Series with Limit', file: 'fibonacci.py', code: `n = int(input("Enter limit: "))
+                a, b = 0, 1
+
+                for _ in range(n):
+                    print(a, end=" ")
+                    a, b = b, a + b` },
+
+                { name: '09. List Operations Full Demo', file: 'lists.py', code: `nums = [10, 20, 30, 40]
+
+                nums.append(50)
+                nums.insert(1, 15)
+                nums.remove(30)
+
+                print("Updated List:", nums)
+                print("Max:", max(nums))
+                print("Min:", min(nums))
+                print("Sum:", sum(nums))` },
+
+                { name: '10. Dictionary Student Database', file: 'dict.py', code: `students = {}
+
+                for i in range(2):
+                    roll = input("Roll: ")
+                    name = input("Name: ")
+                    students[roll] = name
+
+                for r, n in students.items():
+                    print(r, "=>", n)` },
+
+                { name: '11. File Write & Read System', file: 'file.py', code: `with open("data.txt", "w") as f:
+                    f.write("Python File Handling\\n")
+
+                with open("data.txt", "r") as f:
+                    print(f.read())` },
+
+                { name: '12. Login System (File Based)', file: 'login.py', code: `def register():
+                    u = input("Username: ")
+                    p = input("Password: ")
+                    with open("users.txt", "a") as f:
+                        f.write(u + "," + p + "\\n")
+
+                def login():
+                    u = input("Username: ")
+                    p = input("Password: ")
+
+                    with open("users.txt", "r") as f:
+                        for line in f:
+                            user, pwd = line.strip().split(",")
+                            if user == u and pwd == p:
+                                print("Login Successful")
+                                return
+                    print("Invalid Login")
+
+                register()
+                login()` },
+
+                { name: '13. Bank System (OOP)', file: 'bank.py', code: `class Bank:
+                    def __init__(self):
+                        self.balance = 0
+
+                    def deposit(self, amt):
+                        self.balance += amt
+
+                    def withdraw(self, amt):
+                        if amt > self.balance:
+                            print("Insufficient balance")
+                        else:
+                            self.balance -= amt
+
+                acc = Bank()
+                acc.deposit(1000)
+                acc.withdraw(300)
+                print("Balance:", acc.balance)` },
+
+                { name: '14. To-Do List App', file: 'todo.py', code: `tasks = []
+
+                while True:
+                    print("1.Add 2.View 3.Exit")
+                    ch = input("Choice: ")
+
+                    if ch == "1":
+                        tasks.append(input("Enter task: "))
+                    elif ch == "2":
+                        for i, t in enumerate(tasks,1):
+                            print(i, t)
+                    elif ch == "3":
+                        break` },
+
+                { name: '15. Password Strength Checker', file: 'password.py', code: `import re
+
+                pwd = input("Enter password: ")
+
+                if len(pwd) < 8:
+                    print("Weak")
+                elif not re.search("[A-Z]", pwd):
+                    print("Add uppercase")
+                elif not re.search("[0-9]", pwd):
+                    print("Add digit")
+                else:
+                    print("Strong Password")` },
+
+                { name: '16. Mini Chatbot', file: 'chatbot.py', code: `while True:
+                    msg = input("You: ").lower()
+
+                    if "hello" in msg:
+                        print("Bot: Hi!")
+                    elif "bye" in msg:
+                        print("Bot: Goodbye!")
+                        break
+                    else:
+                        print("Bot: I don't understand")` },
+
+                { name: '17. Web Scraper (Basic)', file: 'scraper.py', code: `import requests
+                from bs4 import BeautifulSoup
+
+                url = "https://example.com"
+                res = requests.get(url)
+                soup = BeautifulSoup(res.text, "html.parser")
+
+                print("Title:", soup.title.text)` },
+
+                { name: '18. Student Marks Report', file: 'report.py', code: `students = [
+                    ("Alex", 85),
+                    ("Bob", 72),
+                    ("Charlie", 90)
+                ]
+
+                for s in students:
+                    print(s[0], "=>", s[1])` },
+
+                { name: '19. Data Backup System', file: 'backup.py', code: `import shutil
+
+                shutil.copy("data.txt", "backup.txt")
+                print("Backup created successfully")` },
+
+                { name: '20. Random OTP Generator', file: 'otp.py', code: `import random
+
+                otp = random.randint(100000, 999999)
+                print("Your OTP is:", otp)` },
+
+                { name: '21. Number System Converter', file: 'converter.py', code: `num = int(input("Enter decimal: "))
+
+                print("Binary:", bin(num))
+                print("Octal:", oct(num))
+                print("Hex:", hex(num))` },
+
+                { name: '22. Employee Payroll System', file: 'payroll.py', code: `name = input("Name: ")
+                salary = float(input("Salary: "))
+                tax = salary * 0.1
+                print("Net Salary:", salary - tax)` },
+
+                { name: '23. Attendance System', file: 'attendance.py', code: `students = ["Alex", "Bob", "Charlie"]
+                present = []
+
+                for s in students:
+                    ch = input(f"Is {s} present? (y/n): ")
+                    if ch == "y":
+                        present.append(s)
+
+                print("Present Students:", present)` },
+
+                { name: '24. Digital Clock', file: 'clock.py', code: `import time
+
+                while True:
+                    print(time.strftime("%H:%M:%S"))
+                    time.sleep(1)` },
+
+                { name: '25. Email Sender (SMTP)', file: 'email.py', code: `import smtplib
+
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login("your@gmail.com", "your_app_password")
+                server.sendmail("your@gmail.com", "friend@gmail.com", "Hello from Python")
+                server.quit()` },
+
+                { name: '26. Quiz Application', file: 'quiz.py', code: `score = 0
+
+                q1 = input("Python is interpreted? (y/n): ")
+                if q1 == "y": score += 1
+
+                q2 = input("Python uses braces? (y/n): ")
+                if q2 == "n": score += 1
+
+                print("Score:", score)` },
+
+                { name: '27. Random Password Generator', file: 'password_gen.py', code: `import random,string
+
+                chars = string.ascii_letters + string.digits
+                password = "".join(random.choice(chars) for i in range(8))
+                print("Password:", password)` },
+
+                { name: '28. Guess the Math Answer Game', file: 'math_game.py', code: `import random
+
+                a = random.randint(1,10)
+                b = random.randint(1,10)
+
+                ans = int(input(f"{a} + {b} = "))
+                if ans == a + b:
+                    print("Correct")
+                else:
+                    print("Wrong")` },
+
+                { name: '29. Multiplication Table Generator', file: 'table.py', code: `num = int(input("Enter number: "))
+
+                for i in range(1, 11):
+                    print(num, "x", i, "=", num*i)` },
+
+                { name: '30. URL Opener Tool', file: 'url.py', code: `import webbrowser
+
+                webbrowser.open("https://google.com")` },
+
+                { name: '31. Student CSV Writer', file: 'csv.py', code: `import csv
+
+                with open("students.csv", "w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["Name", "Marks"])
+                    writer.writerow(["Alex", 85])` },
+
+                { name: '32. Alarm Clock', file: 'alarm.py', code: `import time
+
+                alarm = input("Set alarm (HH:MM:SS): ")
+                while True:
+                    if time.strftime("%H:%M:%S") == alarm:
+                        print("Time's Up!")
+                        break` },
+
+                { name: '33. IP Address Finder', file: 'ip.py', code: `import socket
+
+                host = socket.gethostname()
+                print("IP:", socket.gethostbyname(host))` },
+
+                { name: '34. Text Encryption (Caesar Cipher)', file: 'encrypt.py', code: `text = input("Enter text: ")
+                shift = 3
+
+                encrypted = ""
+                for c in text:
+                    encrypted += chr(ord(c) + shift)
+
+                print("Encrypted:", encrypted)` },
+
+                { name: '35. Mini Search Engine', file: 'search.py', code: `data = ["python", "java", "c", "javascript"]
+
+                key = input("Search: ")
+
+                if key.lower() in data:
+                    print("Found")
+                else:
+                    print("Not Found")` }
+
+                ]
+            },
+            java: {
+                title: 'Java',
+                icon: '☕',
+                color: 'bg-red-100 text-red-800',
+                compiler: 'https://www.programiz.com/java-programming/online-compiler/',
+                snippets: [
+                { name: '01. Hello World With User Name', file: 'HelloUser.java', code: `import java.util.Scanner;
+
+                class HelloUser {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+                        System.out.print("Enter your name: ");
+                        String name = sc.nextLine();
+                        System.out.println("Welcome to Oxelion, " + name);
+                    }
+                }` },
+
+                { name: '02. Full Calculator Using Switch', file: 'Calculator.java', code: `import java.util.Scanner;
+
+                class Calculator {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+
+                        System.out.print("Enter A: ");
+                        double a = sc.nextDouble();
+                        System.out.print("Enter B: ");
+                        double b = sc.nextDouble();
+
+                        System.out.println("1.Add 2.Sub 3.Mul 4.Div");
+                        int ch = sc.nextInt();
+
+                        switch (ch) {
+                            case 1: System.out.println(a + b); break;
+                            case 2: System.out.println(a - b); break;
+                            case 3: System.out.println(a * b); break;
+                            case 4:
+                                if (b != 0) System.out.println(a / b);
+                                else System.out.println("Division by zero!");
+                                break;
+                            default: System.out.println("Invalid choice");
+                        }
+                    }
+                }` },
+
+                { name: '03. Student Grade System', file: 'Grade.java', code: `import java.util.Scanner;
+
+                class Grade {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+                        System.out.print("Enter marks: ");
+                        int m = sc.nextInt();
+
+                        if (m < 0 || m > 100) System.out.println("Invalid");
+                        else if (m >= 90) System.out.println("Grade A");
+                        else if (m >= 75) System.out.println("Grade B");
+                        else if (m >= 60) System.out.println("Grade C");
+                        else System.out.println("Fail");
+                    }
+                }` },
+
+                { name: '04. Prime Number Checker', file: 'Prime.java', code: `import java.util.Scanner;
+
+                class Prime {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+                        int n = sc.nextInt();
+                        boolean prime = true;
+
+                        for (int i = 2; i < n; i++) {
+                            if (n % i == 0) {
+                                prime = false;
+                                break;
+                            }
+                        }
+
+                        if (prime && n > 1)
+                            System.out.println("Prime");
+                        else
+                            System.out.println("Not Prime");
+                    }
+                }` },
+
+                { name: '05. Fibonacci Series', file: 'Fibonacci.java', code: `import java.util.Scanner;
+
+                class Fibonacci {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+                        int n = sc.nextInt();
+
+                        int a = 0, b = 1;
+
+                        for (int i = 0; i < n; i++) {
+                            System.out.print(a + " ");
+                            int c = a + b;
+                            a = b;
+                            b = c;
+                        }
+                    }
+                }` },
+
+                { name: '06. Bank Account System (OOP)', file: 'Bank.java', code: `class Bank {
+                    private double balance = 0;
+
+                    void deposit(double amt) {
+                        balance += amt;
+                    }
+
+                    void withdraw(double amt) {
+                        if (amt > balance)
+                            System.out.println("Insufficient balance");
+                        else
+                            balance -= amt;
+                    }
+
+                    void show() {
+                        System.out.println("Balance: " + balance);
+                    }
+
+                    public static void main(String[] args) {
+                        Bank b = new Bank();
+                        b.deposit(1000);
+                        b.withdraw(400);
+                        b.show();
+                    }
+                }` },
+
+                { name: '07. Login System (File Based)', file: 'Login.java', code: `import java.io.*;
+                import java.util.Scanner;
+
+                class Login {
+                    public static void main(String[] args) throws Exception {
+                        Scanner sc = new Scanner(System.in);
+
+                        System.out.print("Username: ");
+                        String u = sc.next();
+                        System.out.print("Password: ");
+                        String p = sc.next();
+
+                        FileWriter fw = new FileWriter("users.txt", true);
+                        fw.write(u + "," + p + "\\n");
+                        fw.close();
+
+                        System.out.println("Registered Successfully");
+                    }
+                }` },
+
+                { name: '08. Student Management System', file: 'StudentSystem.java', code: `import java.util.*;
+
+                class StudentSystem {
+                    public static void main(String[] args) {
+                        HashMap<Integer, String> students = new HashMap<>();
+                        Scanner sc = new Scanner(System.in);
+
+                        while (true) {
+                            System.out.println("1.Add 2.View 3.Exit");
+                            int ch = sc.nextInt();
+
+                            if (ch == 1) {
+                                System.out.print("Roll: ");
+                                int r = sc.nextInt();
+                                System.out.print("Name: ");
+                                String n = sc.next();
+                                students.put(r, n);
+                            } else if (ch == 2) {
+                                System.out.println(students);
+                            } else break;
+                        }
+                    }
+                }` },
+
+                { name: '09. Multi-Threading Demo', file: 'ThreadDemo.java', code: `class MyThread extends Thread {
+                    public void run() {
+                        for (int i = 1; i <= 5; i++) {
+                            System.out.println(i);
+                            try { Thread.sleep(500); } catch(Exception e){}
+                        }
+                    }
+
+                    public static void main(String[] args) {
+                        MyThread t = new MyThread();
+                        t.start();
+                    }
+                }` },
+
+                { name: '10. File Write & Read', file: 'FileIO.java', code: `import java.io.*;
+
+                class FileIO {
+                    public static void main(String[] args) throws Exception {
+                        FileWriter fw = new FileWriter("data.txt");
+                        fw.write("Welcome to Oxelion");
+                        fw.close();
+
+                        FileReader fr = new FileReader("data.txt");
+                        int i;
+                        while ((i = fr.read()) != -1)
+                            System.out.print((char)i);
+                    }
+                }` },
+
+                { name: '11. To-Do List App', file: 'Todo.java', code: `import java.util.*;
+
+                class Todo {
+                    public static void main(String[] args) {
+                        ArrayList<String> tasks = new ArrayList<>();
+                        Scanner sc = new Scanner(System.in);
+
+                        while (true) {
+                            System.out.println("1.Add 2.View 3.Exit");
+                            int ch = sc.nextInt();
+
+                            if (ch == 1) {
+                                tasks.add(sc.next());
+                            } 
+                            else if (ch == 2) {
+                                System.out.println(tasks);
+                            } 
+                            else break;
+                        }
+                    }
+                }` },
+
+                { name: '12. Digital Clock', file: 'Clock.java', code: `import java.time.LocalTime;
+
+                class Clock {
+                    public static void main(String[] args) throws Exception {
+                        while (true) {
+                            System.out.println(LocalTime.now());
+                            Thread.sleep(1000);
+                        }
+                    }
+                }` },
+
+                { name: '13. Quiz Application', file: 'Quiz.java', code: `import java.util.Scanner;
+
+                class Quiz {
+                    public static void main(String[] args) {
+                        Scanner sc = new Scanner(System.in);
+                        int score = 0;
+
+                        System.out.print("Java is platform independent? ");
+                        if (sc.next().equalsIgnoreCase("yes")) score++;
+
+                        System.out.print("Java uses pointers? ");
+                        if (sc.next().equalsIgnoreCase("no")) score++;
+
+                        System.out.println("Score: " + score);
+                    }
+                }` },
+
+                { name: '14. Password Generator', file: 'PasswordGen.java', code: `import java.util.Random;
+
+                class PasswordGen {
+                    public static void main(String[] args) {
+                        String chars = "ABCDEFG123456";
+                        Random r = new Random();
+                        String pass = "";
+
+                        for (int i = 0; i < 8; i++)
+                            pass += chars.charAt(r.nextInt(chars.length()));
+
+                        System.out.println("Password: " + pass);
+                    }
+                }` },
+
+                { name: '15. URL Opener Tool', file: 'Browser.java', code: `import java.awt.Desktop;
+                import java.net.URI;
+
+                class Browser {
+                    public static void main(String[] args) throws Exception {
+                        Desktop.getDesktop().browse(new URI("https://google.com"));
+                    }
+                }` },
+                ]
+            },
+            c: {
+                title: 'C Language',
+                icon: '🇨',
+                color: 'bg-blue-100 text-blue-800',
+                compiler: 'https://www.programiz.com/c-programming/online-compiler/',
+                snippets: [
+                        { name: '01. Hello User', file: 'hello_user.c', code: `#include <stdio.h>
+
+                        int main() {
+                            char name[50];
+                            printf("Enter your name: ");
+                            scanf("%49s", name);
+                            printf("Welcome to Oxelion, %s\\n", name);
+                            return 0;
+                        }` },
+
+                        { name: '02. Simple Calculator (Switch Case)', file: 'calculator.c', code: `#include <stdio.h>
+
+                        int main() {
+                            double a, b;
+                            int ch;
+                            printf("Enter A: ");
+                            scanf("%lf", &a);
+                            printf("Enter B: ");
+                            scanf("%lf", &b);
+
+                            printf("1.Add 2.Sub 3.Mul 4.Div\\n");
+                            scanf("%d", &ch);
+
+                            switch (ch) {
+                                case 1: printf("Result = %.2lf\\n", a + b); break;
+                                case 2: printf("Result = %.2lf\\n", a - b); break;
+                                case 3: printf("Result = %.2lf\\n", a * b); break;
+                                case 4: 
+                                    if (b != 0) printf("Result = %.2lf\\n", a / b);
+                                    else printf("Error: Division by zero\\n");
+                                    break;
+                                default: printf("Invalid choice\\n");
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '03. Even or Odd in a Range', file: 'even_odd_range.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int start, end, i;
+                            printf("Enter start: ");
+                            scanf("%d", &start);
+                            printf("Enter end: ");
+                            scanf("%d", &end);
+
+                            for (i = start; i <= end; i++) {
+                                if (i % 2 == 0)
+                                    printf("%d is Even\\n", i);
+                                else
+                                    printf("%d is Odd\\n", i);
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '04. Prime Number Checker', file: 'prime.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i, flag = 1;
+                            printf("Enter number: ");
+                            scanf("%d", &n);
+
+                            if (n <= 1) flag = 0;
+                            for (i = 2; i < n; i++) {
+                                if (n % i == 0) {
+                                    flag = 0;
+                                    break;
+                                }
+                            }
+
+                            if (flag) printf("Prime\\n");
+                            else printf("Not Prime\\n");
+
+                            return 0;
+                        }` },
+
+                        { name: '05. Factorial of a Number', file: 'factorial.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i;
+                            unsigned long long fact = 1;
+                            printf("Enter number: ");
+                            scanf("%d", &n);
+
+                            if (n < 0) {
+                                printf("Factorial not defined for negative numbers\\n");
+                                return 0;
+                            }
+
+                            for (i = 1; i <= n; i++) {
+                                fact *= i;
+                            }
+                            printf("Factorial = %llu\\n", fact);
+                            return 0;
+                        }` },
+
+                        { name: '06. Fibonacci Series', file: 'fibonacci.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i;
+                            int a = 0, b = 1, c;
+                            printf("Enter terms: ");
+                            scanf("%d", &n);
+
+                            for (i = 0; i < n; i++) {
+                                printf("%d ", a);
+                                c = a + b;
+                                a = b;
+                                b = c;
+                            }
+                            printf("\\n");
+                            return 0;
+                        }` },
+
+                        { name: '07. Array Input and Sum', file: 'array_sum.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i;
+                            int arr[100];
+                            int sum = 0;
+
+                            printf("Enter size: ");
+                            scanf("%d", &n);
+
+                            for (i = 0; i < n; i++) {
+                                scanf("%d", &arr[i]);
+                                sum += arr[i];
+                            }
+
+                            printf("Sum = %d\\n", sum);
+                            return 0;
+                        }` },
+
+                        { name: '08. Find Max and Min in Array', file: 'array_min_max.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i;
+                            int arr[100];
+                            printf("Enter size: ");
+                            scanf("%d", &n);
+
+                            for (i = 0; i < n; i++) scanf("%d", &arr[i]);
+
+                            int max = arr[0], min = arr[0];
+                            for (i = 1; i < n; i++) {
+                                if (arr[i] > max) max = arr[i];
+                                if (arr[i] < min) min = arr[i];
+                            }
+
+                            printf("Max = %d, Min = %d\\n", max, min);
+                            return 0;
+                        }` },
+
+                        { name: '09. Linear Search', file: 'linear_search.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, key, i, found = 0;
+                            int arr[100];
+
+                            printf("Enter size: ");
+                            scanf("%d", &n);
+
+                            for (i = 0; i < n; i++) scanf("%d", &arr[i]);
+
+                            printf("Enter key: ");
+                            scanf("%d", &key);
+
+                            for (i = 0; i < n; i++) {
+                                if (arr[i] == key) {
+                                    printf("Found at index %d\\n", i);
+                                    found = 1;
+                                    break;
+                                }
+                            }
+
+                            if (!found) printf("Not found\\n");
+                            return 0;
+                        }` },
+
+                        { name: '10. Bubble Sort', file: 'bubble_sort.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n, i, j, temp;
+                            int arr[100];
+
+                            printf("Enter size: ");
+                            scanf("%d", &n);
+
+                            for (i = 0; i < n; i++) scanf("%d", &arr[i]);
+
+                            for (i = 0; i < n-1; i++) {
+                                for (j = 0; j < n-i-1; j++) {
+                                    if (arr[j] > arr[j+1]) {
+                                        temp = arr[j];
+                                        arr[j] = arr[j+1];
+                                        arr[j+1] = temp;
+                                    }
+                                }
+                            }
+
+                            printf("Sorted: ");
+                            for (i = 0; i < n; i++) printf("%d ", arr[i]);
+                            printf("\\n");
+                            return 0;
+                        }` },
+
+                        { name: '11. String Length Manually', file: 'string_length.c', code: `#include <stdio.h>
+
+                        int main() {
+                            char str[100];
+                            int i, len = 0;
+                            printf("Enter string: ");
+                            scanf("%99s", str);
+
+                            for (i = 0; str[i] != '\\0'; i++) {
+                                len++;
+                            }
+
+                            printf("Length = %d\\n", len);
+                            return 0;
+                        }` },
+
+                        { name: '12. Check Palindrome String', file: 'palindrome_string.c', code: `#include <stdio.h>
+                        #include <string.h>
+
+                        int main() {
+                            char str[100];
+                            int i, j, flag = 1;
+
+                            printf("Enter string: ");
+                            scanf("%99s", str);
+
+                            i = 0;
+                            j = strlen(str) - 1;
+
+                            while (i < j) {
+                                if (str[i] != str[j]) {
+                                    flag = 0;
+                                    break;
+                                }
+                                i++;
+                                j--;
+                            }
+
+                            if (flag) printf("Palindrome\\n");
+                            else printf("Not Palindrome\\n");
+
+                            return 0;
+                        }` },
+
+                        { name: '13. Matrix Addition', file: 'matrix_add.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int a[10][10], b[10][10], c[10][10];
+                            int n, m, i, j;
+
+                            printf("Rows and Cols: ");
+                            scanf("%d %d", &n, &m);
+
+                            for (i = 0; i < n; i++)
+                                for (j = 0; j < m; j++)
+                                    scanf("%d", &a[i][j]);
+
+                            for (i = 0; i < n; i++)
+                                for (j = 0; j < m; j++)
+                                    scanf("%d", &b[i][j]);
+
+                            for (i = 0; i < n; i++)
+                                for (j = 0; j < m; j++)
+                                    c[i][j] = a[i][j] + b[i][j];
+
+                            printf("Result:\\n");
+                            for (i = 0; i < n; i++) {
+                                for (j = 0; j < m; j++)
+                                    printf("%d ", c[i][j]);
+                                printf("\\n");
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '14. Matrix Multiplication', file: 'matrix_mul.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int a[10][10], b[10][10], c[10][10];
+                            int n1, m1, n2, m2, i, j, k;
+
+                            printf("Enter rows and cols of A: ");
+                            scanf("%d %d", &n1, &m1);
+                            printf("Enter rows and cols of B: ");
+                            scanf("%d %d", &n2, &m2);
+
+                            if (m1 != n2) {
+                                printf("Matrix multiplication not possible\\n");
+                                return 0;
+                            }
+
+                            for (i = 0; i < n1; i++)
+                                for (j = 0; j < m1; j++)
+                                    scanf("%d", &a[i][j]);
+
+                            for (i = 0; i < n2; i++)
+                                for (j = 0; j < m2; j++)
+                                    scanf("%d", &b[i][j]);
+
+                            for (i = 0; i < n1; i++)
+                                for (j = 0; j < m2; j++) {
+                                    c[i][j] = 0;
+                                    for (k = 0; k < m1; k++)
+                                        c[i][j] += a[i][k] * b[k][j];
+                                }
+
+                            printf("Result:\\n");
+                            for (i = 0; i < n1; i++) {
+                                for (j = 0; j < m2; j++)
+                                    printf("%d ", c[i][j]);
+                                printf("\\n");
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '15. Pointer Basics', file: 'pointer_basic.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int x = 10;
+                            int *ptr = &x;
+
+                            printf("Value: %d\\n", x);
+                            printf("Address: %p\\n", (void*)ptr);
+                            printf("Value via pointer: %d\\n", *ptr);
+                            return 0;
+                        }` },
+
+                        { name: '16. Swap Using Pointers', file: 'swap_pointer.c', code: `#include <stdio.h>
+
+                        void swap(int *a, int *b) {
+                            int temp = *a;
+                            *a = *b;
+                            *b = temp;
+                        }
+
+                        int main() {
+                            int x, y;
+                            scanf("%d %d", &x, &y);
+                            swap(&x, &y);
+                            printf("After swap: %d %d\\n", x, y);
+                            return 0;
+                        }` },
+
+                        { name: '17. Struct Student Details', file: 'struct_student.c', code: `#include <stdio.h>
+
+                        struct Student {
+                            int roll;
+                            char name[50];
+                            float marks;
+                        };
+
+                        int main() {
+                            struct Student s;
+                            printf("Roll: ");
+                            scanf("%d", &s.roll);
+                            printf("Name: ");
+                            scanf("%49s", s.name);
+                            printf("Marks: ");
+                            scanf("%f", &s.marks);
+
+                            printf("Student: %d %s %.2f\\n", s.roll, s.name, s.marks);
+                            return 0;
+                        }` },
+
+                        { name: '18. Array of Students', file: 'struct_student_array.c', code: `#include <stdio.h>
+
+                        struct Student {
+                            int roll;
+                            char name[50];
+                            float marks;
+                        };
+
+                        int main() {
+                            struct Student s[3];
+                            int i;
+                            for (i = 0; i < 3; i++) {
+                                scanf("%d %49s %f", &s[i].roll, s[i].name, &s[i].marks);
+                            }
+                            for (i = 0; i < 3; i++) {
+                                printf("%d %s %.2f\\n", s[i].roll, s[i].name, s[i].marks);
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '19. File Write and Read', file: 'file_io.c', code: `#include <stdio.h>
+
+                        int main() {
+                            FILE *fp = fopen("data.txt", "w");
+                            if (!fp) {
+                                printf("File error\\n");
+                                return 0;
+                            }
+                            fprintf(fp, "Hello File I/O in C\\n");
+                            fclose(fp);
+
+                            fp = fopen("data.txt", "r");
+                            if (!fp) {
+                                printf("File error\\n");
+                                return 0;
+                            }
+                            char ch;
+                            while ((ch = fgetc(fp)) != EOF) {
+                                putchar(ch);
+                            }
+                            fclose(fp);
+                            return 0;
+                        }` },
+
+                        { name: '20. Simple Login (File Based)', file: 'login.c', code: `#include <stdio.h>
+                        #include <string.h>
+
+                        int main() {
+                            char u[50], p[50], fu[50], fp[50];
+                            FILE *f = fopen("users.txt", "r");
+                            if (!f) {
+                                printf("No user file\\n");
+                                return 0;
+                            }
+
+                            printf("Username: ");
+                            scanf("%49s", u);
+                            printf("Password: ");
+                            scanf("%49s", p);
+
+                            int found = 0;
+                            while (fscanf(f, "%49[^,],%49s\\n", fu, fp) == 2) {
+                                if (strcmp(u, fu) == 0 && strcmp(p, fp) == 0) {
+                                    found = 1;
+                                    break;
+                                }
+                            }
+                            fclose(f);
+
+                            if (found) printf("Login Success\\n");
+                            else printf("Login Failed\\n");
+
+                            return 0;
+                        }` },
+
+                        { name: '21. Count Vowels and Consonants', file: 'vowel_count.c', code: `#include <stdio.h>
+                        #include <ctype.h>
+
+                        int main() {
+                            char str[200];
+                            int i, v = 0, c = 0;
+
+                            printf("Enter text: ");
+                            scanf("%199[^\\n]", str);
+
+                            for (i = 0; str[i] != '\\0'; i++) {
+                                char ch = tolower(str[i]);
+                                if (ch >= 'a' && ch <= 'z') {
+                                    if (ch=='a'||ch=='e'||ch=='i'||ch=='o'||ch=='u') v++;
+                                    else c++;
+                                }
+                            }
+
+                            printf("Vowels: %d, Consonants: %d\\n", v, c);
+                            return 0;
+                        }` },
+
+                        { name: '22. Number System Converter', file: 'num_convert.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int n;
+                            printf("Enter decimal: ");
+                            scanf("%d", &n);
+                            printf("Decimal: %d\\n", n);
+                            printf("Hex    : %X\\n", n);
+                            printf("Octal  : %o\\n", n);
+                            return 0;
+                        }` },
+
+                        { name: '23. Simple Quiz Application', file: 'quiz.c', code: `#include <stdio.h>
+
+                        int main() {
+                            int score = 0;
+                            char ans;
+
+                            printf("Q1. C is a compiled language? (y/n): ");
+                            scanf(" %c", &ans);
+                            if (ans == 'y' || ans == 'Y') score++;
+
+                            printf("Q2. C supports OOP completely? (y/n): ");
+                            scanf(" %c", &ans);
+                            if (ans == 'n' || ans == 'N') score++;
+
+                            printf("Score = %d\\n", score);
+                            return 0;
+                        }` },
+
+                        { name: '24. Simple To-Do (Array of Strings)', file: 'todo.c', code: `#include <stdio.h>
+                        #include <string.h>
+
+                        int main() {
+                            char tasks[10][50];
+                            int count = 0;
+                            int ch;
+
+                            while (1) {
+                                printf("1.Add 2.View 3.Exit\\n");
+                                scanf("%d", &ch);
+                                if (ch == 1) {
+                                    if (count < 10) {
+                                        printf("Task: ");
+                                        scanf("%49s", tasks[count]);
+                                        count++;
+                                    } else printf("List Full\\n");
+                                } else if (ch == 2) {
+                                    int i;
+                                    for (i = 0; i < count; i++)
+                                        printf("%d. %s\\n", i+1, tasks[i]);
+                                } else break;
+                            }
+                            return 0;
+                        }` },
+
+                        { name: '25. Guess the Number Game', file: 'guess_game.c', code: `#include <stdio.h>
+                        #include <stdlib.h>
+                        #include <time.h>
+
+                        int main() {
+                            int secret, guess, attempts = 0;
+                            srand(time(NULL));
+                            secret = rand() % 100 + 1;
+
+                            while (1) {
+                                printf("Guess(1-100): ");
+                                scanf("%d", &guess);
+                                attempts++;
+
+                                if (guess == secret) {
+                                    printf("Correct in %d attempts!\\n", attempts);
+                                    break;
+                                } else if (guess > secret) {
+                                    printf("Too High\\n");
+                                } else {
+                                    printf("Too Low\\n");
+                                }
+                            }
+                            return 0;
+                        }` },
+
+                ]
+            },
+            javascript: {
+                title: 'JavaScript',
+                icon: '🟨',
+                color: 'bg-yellow-100 text-yellow-800',
+                compiler: 'https://playcode.io/javascript',
+                snippets: [
+                        { name: '01. Welcome App (DOM Output)', file: 'welcome.js', code: `const name = prompt("Enter your name:");
+                        document.body.innerHTML = "<h1>Welcome to Oxelion, " + name + "</h1>";` },
+
+                        { name: '02. Full Calculator (UI + Logic)', file: 'calculator.js', code: `function calculate(op) {
+                            const a = Number(document.getElementById("a").value);
+                            const b = Number(document.getElementById("b").value);
+                            let res = 0;
+
+                            if (op === "+") res = a + b;
+                            if (op === "-") res = a - b;
+                            if (op === "*") res = a * b;
+                            if (op === "/") res = b !== 0 ? a / b : "Error";
+
+                            document.getElementById("result").innerText = res;
+                        }` },
+
+                        { name: '03. Grade System', file: 'grade.js', code: `let marks = Number(prompt("Enter marks"));
+
+                        if (marks > 100 || marks < 0) console.log("Invalid");
+                        else if (marks >= 90) console.log("Grade A");
+                        else if (marks >= 75) console.log("Grade B");
+                        else if (marks >= 60) console.log("Grade C");
+                        else console.log("Fail");` },
+
+                        { name: '04. Prime Number Checker', file: 'prime.js', code: `let n = Number(prompt("Enter number"));
+                        let isPrime = true;
+
+                        if (n <= 1) isPrime = false;
+                        for (let i = 2; i < n; i++) {
+                            if (n % i === 0) {
+                                isPrime = false;
+                                break;
+                            }
+                        }
+                        console.log(isPrime ? "Prime" : "Not Prime");` },
+
+                        { name: '05. Guess the Number Game', file: 'guess.js', code: `const secret = Math.floor(Math.random() * 50) + 1;
+                        let guess;
+
+                        while (true) {
+                            guess = Number(prompt("Guess number 1–50"));
+
+                            if (guess === secret) {
+                                alert("Correct!");
+                                break;
+                            } else if (guess > secret) alert("Too High");
+                            else alert("Too Low");
+                        }` },
+
+                        { name: '06. Fibonacci Series', file: 'fibonacci.js', code: `let n = Number(prompt("How many terms?"));
+                        let a = 0, b = 1, c;
+
+                        for (let i = 0; i < n; i++) {
+                            console.log(a);
+                            c = a + b;
+                            a = b;
+                            b = c;
+                        }` },
+
+                        { name: '07. Dynamic To-Do List (DOM)', file: 'todo.js', code: `let tasks = [];
+
+                        function addTask() {
+                            const task = document.getElementById("task").value;
+                            tasks.push(task);
+                            display();
+                        }
+
+                        function display() {
+                            let list = "";
+                            tasks.forEach((t, i) => list += (i+1) + ". " + t + "<br>");
+                            document.getElementById("list").innerHTML = list;
+                        }` },
+
+                        { name: '08. Digital Clock', file: 'clock.js', code: `setInterval(() => {
+                            const time = new Date().toLocaleTimeString();
+                            document.getElementById("clock").innerText = time;
+                        }, 1000);` },
+
+                        { name: '09. Random Password Generator', file: 'password.js', code: `const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+                        let pass = "";
+
+                        for (let i = 0; i < 8; i++) {
+                            pass += chars[Math.floor(Math.random() * chars.length)];
+                        }
+
+                        console.log("Password:", pass);` },
+
+                        { name: '10. Form Validation', file: 'form_validation.js', code: `function validate() {
+                            const email = document.getElementById("email").value;
+                            if (!email.includes("@")) {
+                                alert("Invalid Email");
+                                return false;
+                            }
+                            alert("Form Submitted");
+                            return true;
+                        }` },
+
+                        { name: '11. LocalStorage Login System', file: 'login.js', code: `function register() {
+                            localStorage.setItem("user", user.value);
+                            localStorage.setItem("pass", pass.value);
+                            alert("Registered");
+                        }
+
+                        function login() {
+                            if (
+                                user.value === localStorage.getItem("user") &&
+                                pass.value === localStorage.getItem("pass")
+                            ) alert("Login Success");
+                            else alert("Login Failed");
+                        }` },
+
+                        { name: '12. Array Sorting App', file: 'sort.js', code: `let data = [10, 5, 20, 2];
+                        data.sort((a, b) => a - b);
+                        console.log("Sorted:", data);` },
+
+                        { name: '13. Student Report System', file: 'student.js', code: `let students = [
+                            { name: "Alex", marks: 85 },
+                            { name: "Bob", marks: 72 }
+                        ];
+
+                        students.forEach(s => {
+                            console.log(s.name + " => " + s.marks);
+                        });` },
+
+                        { name: '14. Stopwatch', file: 'stopwatch.js', code: `let sec = 0;
+                        setInterval(() => {
+                            sec++;
+                            document.getElementById("time").innerText = sec + " sec";
+                        }, 1000);` },
+
+                        { name: '15. Number System Converter', file: 'convert.js', code: `let n = Number(prompt("Enter number"));
+                        console.log("Binary:", n.toString(2));
+                        console.log("Hex:", n.toString(16));` },
+
+                        { name: '16. Weather App (API)', file: 'weather.js', code: `fetch("https://api.open-meteo.com/v1/forecast?latitude=17.38&longitude=78.48&current_weather=true")
+                        .then(res => res.json())
+                        .then(data => console.log("Temp:", data.current_weather.temperature));` },
+
+                        { name: '17. Quiz Application', file: 'quiz.js', code: `let score = 0;
+                        let q1 = prompt("JavaScript is interpreted? y/n");
+                        if (q1 === "y") score++;
+
+                        let q2 = prompt("JS is same as Java? y/n");
+                        if (q2 === "n") score++;
+
+                        alert("Score: " + score);` },
+
+                        { name: '18. API Fetch User Data', file: 'api.js', code: `fetch("https://jsonplaceholder.typicode.com/users")
+                        .then(res => res.json())
+                        .then(data => console.log(data));` },
+
+                        { name: '19. Dark Mode Toggle', file: 'darkmode.js', code: `function toggleMode() {
+                            document.body.classList.toggle("dark");
+                        }` },
+
+                        { name: '20. Random Quote Generator', file: 'quote.js', code: `const quotes = ["Believe!", "Work Hard!", "Never Quit"];
+                        const r = Math.floor(Math.random() * quotes.length);
+                        console.log(quotes[r]);` },
+
+                        { name: '21. URL Opener', file: 'open_url.js', code: `window.open("https://google.com");` },
+
+                        { name: '22. Image Slider Logic', file: 'slider.js', code: `let imgs = ["1.jpg", "2.jpg", "3.jpg"];
+                        let i = 0;
+
+                        setInterval(() => {
+                            document.getElementById("img").src = imgs[i];
+                            i = (i + 1) % imgs.length;
+                        }, 2000);` },
+
+                        { name: '23. Calculator Without eval()', file: 'safe_calc.js', code: `function calc(a, b, op) {
+                            if (op === "+") return a + b;
+                            if (op === "-") return a - b;
+                            if (op === "*") return a * b;
+                            if (op === "/") return b !== 0 ? a / b : "Error";
+                        }
+
+                        console.log(calc(10, 5, "*"));` },
+
+                        { name: '24. Random OTP Generator', file: 'otp.js', code: `const otp = Math.floor(100000 + Math.random() * 900000);
+                        console.log("OTP:", otp);` },
+
+                        { name: '25. Mini Chatbot', file: 'chatbot.js', code: `while (true) {
+                            const msg = prompt("You:");
+
+                            if (msg === "hi") alert("Bot: Hello!");
+                            else if (msg === "bye") break;
+                            else alert("Bot: I don't understand");
+                        }` }
+
+                ]
+            },
+            dsa: {
+                title: 'DSA Problem Sets',
+                icon: '🧠',
+                color: 'bg-purple-100 text-purple-800',
+                compiler: 'https://leetcode.com/playground/new/empty',
+                snippets: [
+                        { name: '01. Linear Search', file: 'linear_search.py', code: `arr = [10, 20, 30, 40, 50]
+                        key = 30
+
+                        found = False
+                        for i in range(len(arr)):
+                            if arr[i] == key:
+                                print("Found at index", i)
+                                found = True
+                                break
+
+                        if not found:
+                            print("Not Found")` },
+
+                        { name: '02. Binary Search', file: 'binary_search.py', code: `arr = [10, 20, 30, 40, 50]
+                        key = 40
+                        low, high = 0, len(arr) - 1
+
+                        while low <= high:
+                            mid = (low + high) // 2
+                            if arr[mid] == key:
+                                print("Found at", mid)
+                                break
+                            elif key < arr[mid]:
+                                high = mid - 1
+                            else:
+                                low = mid + 1` },
+
+                        { name: '03. Bubble Sort', file: 'bubble_sort.py', code: `arr = [64, 34, 25, 12, 22, 11, 90]
+
+                        for i in range(len(arr)):
+                            for j in range(len(arr)-i-1):
+                                if arr[j] > arr[j+1]:
+                                    arr[j], arr[j+1] = arr[j+1], arr[j]
+
+                        print("Sorted:", arr)` },
+
+                        { name: '04. Selection Sort', file: 'selection_sort.py', code: `arr = [64, 25, 12, 22, 11]
+
+                        for i in range(len(arr)):
+                            min_idx = i
+                            for j in range(i+1, len(arr)):
+                                if arr[j] < arr[min_idx]:
+                                    min_idx = j
+                            arr[i], arr[min_idx] = arr[min_idx], arr[i]
+
+                        print(arr)` },
+
+                        { name: '05. Insertion Sort', file: 'insertion_sort.py', code: `arr = [12, 11, 13, 5, 6]
+
+                        for i in range(1, len(arr)):
+                            key = arr[i]
+                            j = i - 1
+                            while j >= 0 and key < arr[j]:
+                                arr[j+1] = arr[j]
+                                j -= 1
+                            arr[j+1] = key
+
+                        print(arr)` },
+
+                        { name: '06. Stack Using List', file: 'stack.py', code: `stack = []
+
+                        stack.append(10)
+                        stack.append(20)
+                        stack.append(30)
+
+                        print(stack.pop())
+                        print(stack)` },
+
+                        { name: '07. Queue Using List', file: 'queue.py', code: `queue = []
+
+                        queue.append(10)
+                        queue.append(20)
+                        queue.append(30)
+
+                        print(queue.pop(0))
+                        print(queue)` },
+
+                        { name: '08. Reverse String Using Stack', file: 'reverse_string.py', code: `s = "python"
+                        stack = list(s)
+
+                        rev = ""
+                        while stack:
+                            rev += stack.pop()
+
+                        print(rev)` },
+
+                        { name: '09. Check Balanced Parentheses', file: 'balanced.py', code: `s = "(a+b)"
+                        stack = []
+
+                        for ch in s:
+                            if ch == '(':
+                                stack.append(ch)
+                            elif ch == ')':
+                                if not stack:
+                                    print("Unbalanced")
+                                    break
+                                stack.pop()
+                        else:
+                            print("Balanced" if not stack else "Unbalanced")` },
+
+                        { name: '10. Find Max in Array', file: 'max_array.py', code: `arr = [5, 10, 25, 3]
+                        max_val = arr[0]
+
+                        for x in arr:
+                            if x > max_val:
+                                max_val = x
+
+                        print("Max:", max_val)` },
+
+                        { name: '11. Find Min in Array', file: 'min_array.py', code: `arr = [5, 10, 25, 3]
+                        min_val = arr[0]
+
+                        for x in arr:
+                            if x < min_val:
+                                min_val = x
+
+                        print("Min:", min_val)` },
+
+                        { name: '12. Count Frequency', file: 'frequency.py', code: `arr = [1,2,2,3,3,3]
+                        freq = {}
+
+                        for x in arr:
+                            freq[x] = freq.get(x, 0) + 1
+
+                        print(freq)` },
+
+                        { name: '13. Remove Duplicates', file: 'remove_duplicates.py', code: `arr = [1,1,2,3,3,4]
+                        unique = list(set(arr))
+                        print(unique)` },
+
+                        { name: '14. Reverse Array', file: 'reverse_array.py', code: `arr = [1,2,3,4]
+                        arr.reverse()
+                        print(arr)` },
+
+                        { name: '15. Two Sum Problem', file: 'two_sum.py', code: `arr = [2,7,11,15]
+                        target = 9
+                        d = {}
+
+                        for i in range(len(arr)):
+                            diff = target - arr[i]
+                            if diff in d:
+                                print(d[diff], i)
+                                break
+                            d[arr[i]] = i` },
+
+                        { name: '16. Fibonacci Using DP', file: 'fib_dp.py', code: `n = 10
+                        dp = [0,1]
+
+                        for i in range(2, n):
+                            dp.append(dp[i-1] + dp[i-2])
+
+                        print(dp)` },
+
+                        { name: '17. Factorial Using Recursion', file: 'factorial_rec.py', code: `def fact(n):
+                            if n == 1:
+                                return 1
+                            return n * fact(n-1)
+
+                        print(fact(5))` },
+
+                        { name: '18. GCD Using Euclid', file: 'gcd.py', code: `a, b = 48, 18
+
+                        while b != 0:
+                            a, b = b, a % b
+
+                        print("GCD:", a)` },
+
+                        { name: '19. LCM Program', file: 'lcm.py', code: `a, b = 12, 18
+
+                        max_val = max(a, b)
+                        while True:
+                            if max_val % a == 0 and max_val % b == 0:
+                                print("LCM:", max_val)
+                                break
+                            max_val += 1` },
+
+                        { name: '20. Power Using Recursion', file: 'power.py', code: `def power(a, b):
+                            if b == 0:
+                                return 1
+                            return a * power(a, b-1)
+
+                        print(power(2, 5))` },
+
+                        { name: '21. Palindrome Check', file: 'palindrome.py', code: `s = "madam"
+                        print("Palindrome" if s == s[::-1] else "Not Palindrome")` },
+
+                        { name: '22. Binary to Decimal', file: 'bin_to_dec.py', code: `b = "1011"
+                        print(int(b, 2))` },
+
+                        { name: '23. Decimal to Binary', file: 'dec_to_bin.py', code: `n = 10
+                        print(bin(n))` },
+
+                        { name: '24. Kadane’s Algorithm', file: 'kadane.py', code: `arr = [-2,1,-3,4,-1,2,1,-5,4]
+                        max_sum = curr = arr[0]
+
+                        for x in arr[1:]:
+                            curr = max(x, curr + x)
+                            max_sum = max(max_sum, curr)
+
+                        print(max_sum)` },
+
+                        { name: '25. Majority Element', file: 'majority.py', code: `arr = [2,2,1,1,2,2,2]
+                        count = {}
+                        for x in arr:
+                            count[x] = count.get(x, 0) + 1
+
+                        for k, v in count.items():
+                            if v > len(arr)//2:
+                                print("Majority:", k)` },
+
+                        { name: '26. Merge Two Sorted Arrays', file: 'merge_arrays.py', code: `a = [1,3,5]
+                        b = [2,4,6]
+                        print(sorted(a + b))` },
+
+                        { name: '27. Subarray Sum', file: 'subarray_sum.py', code: `arr = [1,2,3,4]
+                        target = 6
+
+                        for i in range(len(arr)):
+                            s = 0
+                            for j in range(i, len(arr)):
+                                s += arr[j]
+                                if s == target:
+                                    print(i, j)` },
+
+                        { name: '28. Pair With Given Sum', file: 'pair_sum.py', code: `arr = [1,4,5,6]
+                        target = 10
+                        s = set()
+
+                        for x in arr:
+                            if target - x in s:
+                                print(x, target-x)
+                            s.add(x)` },
+
+                        { name: '29. First Non-Repeating', file: 'non_repeat.py', code: `s = "aabbccde"
+                        for ch in s:
+                            if s.count(ch) == 1:
+                                print(ch)
+                                break` },
+
+                        { name: '30. Anagram Check', file: 'anagram.py', code: `s1 = "listen"
+                        s2 = "silent"
+                        print(sorted(s1) == sorted(s2))` },
+
+                        { name: '31. Count Set Bits', file: 'set_bits.py', code: `n = 10
+                        count = 0
+                        while n:
+                            count += n & 1
+                            n >>= 1
+                        print(count)` },
+
+                        { name: '32. Rotate Array', file: 'rotate.py', code: `arr = [1,2,3,4,5]
+                        k = 2
+                        print(arr[k:] + arr[:k])` },
+
+                        { name: '33. Intersection of Two Arrays', file: 'intersection.py', code: `a = [1,2,3,4]
+                        b = [3,4,5,6]
+                        print(list(set(a) & set(b)))` },
+
+                        { name: '34. Union of Two Arrays', file: 'union.py', code: `a = [1,2]
+                        b = [2,3]
+                        print(list(set(a) | set(b)))` },
+
+                        { name: '35. Next Greater Element', file: 'nge.py', code: `arr = [4,5,2,25]
+                        stack = []
+                        result = [-1]*len(arr)
+
+                        for i in range(len(arr)):
+                            while stack and arr[stack[-1]] < arr[i]:
+                                result[stack.pop()] = arr[i]
+                            stack.append(i)
+
+                        print(result)` },
+
+                        { name: '36. Detect Loop in List', file: 'loop_detect.py', code: `arr = [1,2,3,4,2]
+                        print(len(arr) != len(set(arr)))` },
+
+                        { name: '37. Find Missing Number', file: 'missing.py', code: `arr = [1,2,4,5]
+                        n = 5
+                        print(n*(n+1)//2 - sum(arr))` },
+
+                        { name: '38. Prefix Sum Array', file: 'prefix_sum.py', code: `arr = [1,2,3,4]
+                        prefix = []
+                        s = 0
+                        for x in arr:
+                            s += x
+                            prefix.append(s)
+                        print(prefix)` },
+
+                        { name: '39. Sliding Window Max Sum', file: 'sliding.py', code: `arr = [2,1,5,1,3,2]
+                        k = 3
+                        max_sum = sum(arr[:k])
+
+                        for i in range(len(arr)-k):
+                            max_sum = max(max_sum, sum(arr[i:i+k]))
+
+                        print(max_sum)` },
+
+                        { name: '40. Count Inversions', file: 'inversions.py', code: `arr = [1,20,6,4,5]
+                        count = 0
+                        for i in range(len(arr)):
+                            for j in range(i+1, len(arr)):
+                                if arr[i] > arr[j]:
+                                    count += 1
+                        print(count)` },
+
+                        { name: '41. Longest Word in String', file: 'longest_word.py', code: `s = "Python is powerful language"
+                        print(max(s.split(), key=len))` },
+
+                        { name: '42. Remove Spaces', file: 'remove_space.py', code: `s = "hello world"
+                        print(s.replace(" ", ""))` },
+
+                        { name: '43. Reverse Words', file: 'reverse_words.py', code: `s = "hello world"
+                        print(" ".join(reversed(s.split())))` },
+
+                        { name: '44. Check Armstrong Number', file: 'armstrong.py', code: `n = 371
+                        total = sum(int(d)**3 for d in str(n))
+                        print(n == total)` },
+
+                        { name: '45. Permutations of a String', file: 'permutations.py', code: `from itertools import permutations
+                        print(list(permutations("ABC")))` },
+
+                        { name: '46. Combinations of Array', file: 'combinations.py', code: `from itertools import combinations
+                        print(list(combinations([1,2,3], 2)))` },
+
+                        { name: '47. Matrix Transpose', file: 'transpose.py', code: `m = [[1,2],[3,4]]
+                        print(list(zip(*m)))` },
+
+                        { name: '48. Pascal Triangle', file: 'pascal.py', code: `n = 5
+                        for i in range(n):
+                            print([1 if j==0 or j==i else 0 for j in range(i+1)])` },
+
+                        { name: '49. Heap Sort', file: 'heap_sort.py', code: `import heapq
+                        arr = [3,2,1,5,6,4]
+                        heapq.heapify(arr)
+                        print([heapq.heappop(arr) for _ in range(len(arr))])` },
+
+                        { name: '50. Graph BFS Traversal', file: 'bfs.py', code: `graph = {
+                            0:[1,2],
+                            1:[0,3],
+                            2:[0],
+                            3:[1]
+                        }
+
+                        visited = set()
+                        queue = [0]
+
+                        while queue:
+                            node = queue.pop(0)
+                            if node not in visited:
+                                print(node, end=" ")
+                                visited.add(node)
+                                queue.extend(graph[node])` }
+
+                ]
+            }
+        };
+
+        // --- Logic ---
+        const modal = document.getElementById('codeModal');
+        const snippetList = document.getElementById('snippetList');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const currentFile = document.getElementById('currentFile');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalIcon = document.getElementById('modalIcon');
+        const runButton = document.getElementById('runButton');
+        let currentLang = '';
+
+        function openModal(lang) {
+            currentLang = lang;
+            const data = codeLibrary[lang];
+            
+            // Setup Modal Header
+            modalTitle.innerText = data.title;
+            modalIcon.innerText = data.icon;
+            modalIcon.className = `w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm ${data.color}`;
+            runButton.href = data.compiler;
+
+            // Populate Snippets
+            snippetList.innerHTML = '';
+            data.snippets.forEach((snippet, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100 focus:bg-blue-50 focus:text-blue-600';
+                btn.innerText = snippet.name;
+                btn.onclick = () => loadSnippet(index);
+                snippetList.appendChild(btn);
+            });
+
+            // Load first snippet by default
+            loadSnippet(0);
+
+            // Show Modal
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function loadSnippet(index) {
+            const data = codeLibrary[currentLang].snippets[index];
+            currentFile.innerText = data.file;
+            
+            // Update Code & Highlight
+            codeDisplay.textContent = data.code;
+            codeDisplay.className = `language-${currentLang === 'dsa' ? 'python' : currentLang}`; // Default DSA to python for generic highlighting
+            Prism.highlightElement(codeDisplay);
+
+            // Highlight active button in list
+            const buttons = snippetList.querySelectorAll('button');
+            buttons.forEach(b => b.classList.remove('bg-blue-50', 'text-blue-600', 'ring-1', 'ring-blue-100'));
+            buttons[index].classList.add('bg-blue-50', 'text-blue-600', 'ring-1', 'ring-blue-100');
+        }
+
+        function copyCode() {
+            const text = codeDisplay.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const copyText = document.getElementById('copyText');
+                const original = copyText.innerText;
+                copyText.innerText = 'Copied!';
+                setTimeout(() => copyText.innerText = original, 2000);
+            });
+        }
+
+        // Loader Logic
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
